@@ -132,6 +132,17 @@ This package bundles JSON Schema files from [cryo-wiring-spec](https://github.co
 | `components.schema.json` | `validate_components()` | components.yaml                                      |
 | `chip.schema.json`       | `validate_chip()`       | chip.yaml                                            |
 
+## Examples
+
+Interactive [marimo](https://marimo.io/) notebooks are available in the `examples/` directory.
+
+```bash
+uv sync --group example
+uv run marimo edit examples/getting_started.py
+```
+
+The notebook covers builder usage, summary tables, SVG diagram rendering, and component add/remove/replace operations.
+
 ## Development
 
 ```bash

@@ -18,35 +18,47 @@ Two usage patterns:
     from cryo_wiring_core.builder import CooldownBuilder
     from cryo_wiring_core.models import Attenuator, Isolator, Amplifier, Stage
 
-    b = CooldownBuilder(num_qubits=16)
+    cooldown = (
+        CooldownBuilder(num_qubits=16)
+        .control_module("my_ctrl", {
+            Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
+            Stage.K4: [Attenuator(model="XMA-20dB", value_dB=20)],
+            Stage.MXC: [Attenuator(model="XMA-20dB", value_dB=20)],
+        })
+        .readout_send_module("my_rs", {
+            Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
+        })
+        .readout_return_module("my_rr", {
+            Stage.CP: [Isolator(model="LNF-ISC"), Isolator(model="LNF-ISC")],
+            Stage.K50: [Amplifier(model="HEMT", amplifier_type="HEMT", gain_dB=40)],
+        })
+        .build()
+    )
 
-    b.control_module("my_ctrl", {
-        Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
-        Stage.K4: [Attenuator(model="XMA-20dB", value_dB=20)],
-        Stage.MXC: [Attenuator(model="XMA-20dB", value_dB=20)],
-    })
+    # Rich result object
+    cooldown.control          # WiringConfig
+    cooldown.summary()        # print summary table
+    cooldown.diagram("out.svg")
+    cooldown.write("output/", fridge="anemone")
 
-    b.readout_send_module("my_rs", {
-        Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
-    })
-
-    b.readout_return_module("my_rr", {
-        Stage.CP: [Isolator(model="LNF-ISC"), Isolator(model="LNF-ISC")],
-        Stage.K50: [Amplifier(model="HEMT", amplifier_type="HEMT", gain_dB=40)],
-    })
-
-    # Get WiringConfig objects
-    control, readout_send, readout_return = b.build()
-
-    # Or write to a directory
-    b.write("output/", fridge="anemone")
+    # Bulk per-line overrides
+    cooldown = (
+        CooldownBuilder(num_qubits=8)
+        .control_module("ctrl", {...})
+        .for_lines("C00", "C03", "C05")
+            .add(Stage.STILL, Filter(model="K&L", filter_type="Lowpass"))
+            .remove(Stage.MXC, component_type="filter")
+        .end()
+        .build()
+    )
 """
 
 from __future__ import annotations
 
+import copy
 from datetime import date
 from pathlib import Path
-from typing import Union
+from typing import Sequence, Union
 
 import yaml
 
@@ -155,6 +167,173 @@ def make_wiring_yaml(
     return {"modules": {module_name: module_def}, "lines": lines}
 
 
+# -- Cooldown result object --
+
+LineIds = Union[str, Sequence[str]]
+
+def _normalize_line_ids(line_ids: LineIds) -> list[str]:
+    """Normalize a single line_id or sequence to a list."""
+    if isinstance(line_ids, str):
+        return [line_ids]
+    return list(line_ids)
+
+
+class Cooldown:
+    """Result of ``CooldownBuilder.build()``.
+
+    Provides attribute access, iteration (unpack), and convenience methods
+    for summary / diagram / write.
+    """
+
+    __slots__ = ("control", "readout_send", "readout_return", "_builder")
+
+    def __init__(
+        self,
+        control: WiringConfig,
+        readout_send: WiringConfig,
+        readout_return: WiringConfig,
+        builder: CooldownBuilder | None = None,
+    ) -> None:
+        self.control = control
+        self.readout_send = readout_send
+        self.readout_return = readout_return
+        self._builder = builder
+
+    # -- unpack support: control, rs, rr = cooldown --
+
+    def __iter__(self):
+        return iter((self.control, self.readout_send, self.readout_return))
+
+    def __len__(self) -> int:
+        return 3
+
+    def __getitem__(self, index: int) -> WiringConfig:
+        return (self.control, self.readout_send, self.readout_return)[index]
+
+    # -- convenience methods --
+
+    def summary(
+        self,
+        line_type: str = "all",
+        fmt: str = "terminal",
+    ) -> str | None:
+        """Print or return a wiring summary.
+
+        Parameters
+        ----------
+        fmt
+            ``"terminal"`` (print via Rich), ``"markdown"``, or ``"html"``.
+        """
+        from cryo_wiring_core.summary import (
+            generate_html_table,
+            generate_markdown_table,
+            print_summary,
+        )
+
+        if fmt == "terminal":
+            print_summary(self.control, self.readout_send, self.readout_return, line_type=line_type)
+            return None
+        if fmt == "markdown":
+            return generate_markdown_table(self.control, self.readout_send, self.readout_return, line_type=line_type)
+        if fmt == "html":
+            return generate_html_table(self.control, self.readout_send, self.readout_return, line_type=line_type)
+        raise ValueError(f"Unknown format: {fmt!r}. Use 'terminal', 'markdown', or 'html'.")
+
+    def diagram(
+        self,
+        output: str | Path = "wiring.svg",
+        filter_lines: list[str] | None = None,
+        representative: bool = False,
+        width: float = 3.375,
+    ) -> Path:
+        """Generate a publication-quality wiring diagram."""
+        from cryo_wiring_core.diagram import generate_diagram
+
+        return generate_diagram(
+            self.control,
+            self.readout_send,
+            self.readout_return,
+            output=output,
+            filter_lines=filter_lines,
+            representative=representative,
+            width=width,
+        )
+
+    def write(
+        self,
+        output_dir: str | Path,
+        fridge: str,
+        chip_name: str | None = None,
+        cooldown_id: str = "cd001",
+        cooldown_date: str | None = None,
+        operator: str = "",
+        purpose: str = "",
+    ) -> Path:
+        """Write the complete cooldown directory as YAML files."""
+        if self._builder is None:
+            raise RuntimeError("write() requires a builder reference. Use CooldownBuilder.build().")
+        return self._builder.write(
+            output_dir,
+            fridge=fridge,
+            chip_name=chip_name,
+            cooldown_id=cooldown_id,
+            cooldown_date=cooldown_date,
+            operator=operator,
+            purpose=purpose,
+        )
+
+
+# -- Scoped builder for bulk per-line overrides --
+
+class _LineScope:
+    """Scoped builder returned by ``CooldownBuilder.for_lines()``.
+
+    Collects add/remove/replace operations for a fixed set of line IDs,
+    then returns to the parent builder via ``.end()``.
+    """
+
+    def __init__(self, parent: CooldownBuilder, line_ids: list[str]) -> None:
+        self._parent = parent
+        self._line_ids = line_ids
+
+    def add(
+        self,
+        stage: Stage,
+        component: Attenuator | Filter | Isolator | Amplifier,
+    ) -> _LineScope:
+        """Add a component at *stage* on all scoped lines."""
+        for lid in self._line_ids:
+            self._parent.add(lid, stage, component)
+        return self
+
+    def remove(
+        self,
+        stage: Stage,
+        *,
+        component_type: str | None = None,
+        index: int | None = None,
+    ) -> _LineScope:
+        """Remove component(s) at *stage* on all scoped lines."""
+        for lid in self._line_ids:
+            self._parent.remove(lid, stage, component_type=component_type, index=index)
+        return self
+
+    def replace(
+        self,
+        stage: Stage,
+        index: int,
+        component: Attenuator | Filter | Isolator | Amplifier,
+    ) -> _LineScope:
+        """Replace a component at *stage*/*index* on all scoped lines."""
+        for lid in self._line_ids:
+            self._parent.replace(lid, stage, index, component)
+        return self
+
+    def end(self) -> CooldownBuilder:
+        """Return to the parent builder."""
+        return self._parent
+
+
 # -- Model-based builder --
 
 ComponentList = list[Union[Attenuator, Filter, Isolator, Amplifier]]
@@ -165,12 +344,14 @@ class CooldownBuilder:
 
     Example::
 
-        b = CooldownBuilder(num_qubits=8)
-        b.control_module("ctrl", {
-            Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
-            Stage.MXC: [Attenuator(model="XMA-20dB", value_dB=20)],
-        })
-        control, rs, rr = b.build()
+        cooldown = (
+            CooldownBuilder(num_qubits=8)
+            .control_module("ctrl", {
+                Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
+                Stage.MXC: [Attenuator(model="XMA-20dB", value_dB=20)],
+            })
+            .build()
+        )
     """
 
     def __init__(
@@ -183,6 +364,7 @@ class CooldownBuilder:
         self._ctrl: tuple[str, dict[Stage, ComponentList]] | None = None
         self._rs: tuple[str, dict[Stage, ComponentList]] | None = None
         self._rr: tuple[str, dict[Stage, ComponentList]] | None = None
+        self._overrides: list[tuple] = []
 
     def control_module(
         self,
@@ -211,6 +393,95 @@ class CooldownBuilder:
         self._rr = (name, stages)
         return self
 
+    def for_lines(self, *line_ids: str) -> _LineScope:
+        """Start a scoped builder for bulk overrides on the given lines.
+
+        Example::
+
+            builder.for_lines("C00", "C03", "C05")
+                .add(Stage.STILL, Filter(model="K&L", filter_type="Lowpass"))
+                .remove(Stage.MXC, component_type="filter")
+            .end()
+        """
+        return _LineScope(self, list(line_ids))
+
+    def add(
+        self,
+        line_ids: LineIds,
+        stage: Stage,
+        component: Attenuator | Filter | Isolator | Amplifier,
+    ) -> CooldownBuilder:
+        """Add a component to line(s) at a given stage.
+
+        ``line_ids`` can be a single string or a list of strings::
+
+            b.add("C00", Stage.STILL, Filter(...))
+            b.add(["C00", "C03", "C05"], Stage.STILL, Filter(...))
+        """
+        for lid in _normalize_line_ids(line_ids):
+            self._overrides.append(("add", lid, stage, component))
+        return self
+
+    def remove(
+        self,
+        line_ids: LineIds,
+        stage: Stage,
+        *,
+        component_type: str | None = None,
+        index: int | None = None,
+    ) -> CooldownBuilder:
+        """Remove component(s) from line(s) at a given stage.
+
+        ``line_ids`` can be a single string or a list of strings.
+        """
+        for lid in _normalize_line_ids(line_ids):
+            self._overrides.append(("remove", lid, stage, component_type, index))
+        return self
+
+    def replace(
+        self,
+        line_ids: LineIds,
+        stage: Stage,
+        index: int,
+        component: Attenuator | Filter | Isolator | Amplifier,
+    ) -> CooldownBuilder:
+        """Replace a component at a specific position on line(s).
+
+        ``line_ids`` can be a single string or a list of strings.
+        """
+        for lid in _normalize_line_ids(line_ids):
+            self._overrides.append(("replace", lid, stage, index, component))
+        return self
+
+    def _apply_overrides(self, config: WiringConfig) -> None:
+        """Apply per-line overrides to a built WiringConfig (in-place)."""
+        line_map = {line.line_id: line for line in config.lines}
+        for op in self._overrides:
+            line = line_map.get(op[1])
+            if line is None:
+                continue
+            stage: Stage = op[2]
+            if op[0] == "add":
+                line.stages.setdefault(stage, []).append(op[3])
+            elif op[0] == "remove":
+                comp_type, idx = op[3], op[4]
+                comps = line.stages.get(stage, [])
+                if idx is not None:
+                    if 0 <= idx < len(comps):
+                        comps.pop(idx)
+                elif comp_type is not None:
+                    for i, c in enumerate(comps):
+                        if c.type == comp_type:
+                            comps.pop(i)
+                            break
+                else:
+                    line.stages[stage] = []
+            elif op[0] == "replace":
+                idx, comp = op[3], op[4]
+                comps = line.stages.get(stage, [])
+                if 0 <= idx < len(comps):
+                    comps[idx] = comp
+
     def _build_wiring_config(
         self,
         module_name: str,
@@ -221,7 +492,7 @@ class CooldownBuilder:
         parsed_lines: list[ControlLine | ReadoutLine] = []
         for line_dict in lines_dicts:
             line_id = line_dict["line_id"]
-            line_stages = dict(stages)  # all lines share the module stages
+            line_stages = copy.deepcopy(stages)
             if line_id.startswith("C"):
                 parsed_lines.append(ControlLine(
                     line_id=line_id,
@@ -236,8 +507,20 @@ class CooldownBuilder:
                 ))
         return WiringConfig(lines=parsed_lines)
 
-    def build(self) -> tuple[WiringConfig, WiringConfig, WiringConfig]:
-        """Build ``(control, readout_send, readout_return)`` WiringConfig objects."""
+    def build(self) -> Cooldown:
+        """Build a :class:`Cooldown` result object.
+
+        The result supports unpacking::
+
+            control, readout_send, readout_return = builder.build()
+
+        And attribute access with convenience methods::
+
+            cooldown = builder.build()
+            cooldown.control
+            cooldown.summary()
+            cooldown.diagram("out.svg")
+        """
         if self._ctrl is None:
             raise ValueError("Control module not defined. Call control_module() first.")
 
@@ -259,7 +542,10 @@ class CooldownBuilder:
         else:
             readout_return = WiringConfig(lines=[])
 
-        return control, readout_send, readout_return
+        for cfg in (control, readout_send, readout_return):
+            self._apply_overrides(cfg)
+
+        return Cooldown(control, readout_send, readout_return, builder=self)
 
     def _module_to_yaml_dict(
         self,
@@ -281,17 +567,7 @@ class CooldownBuilder:
         operator: str = "",
         purpose: str = "",
     ) -> Path:
-        """Write the complete cooldown directory as YAML files.
-
-        Parameters
-        ----------
-        output_dir
-            Target directory (created if needed).
-        fridge
-            Fridge name.
-        chip_name
-            Chip name for chip.yaml. Defaults to ``"chip-{num_qubits}q"``.
-        """
+        """Write the complete cooldown directory as YAML files."""
         if self._ctrl is None:
             raise ValueError("Control module not defined. Call control_module() first.")
 

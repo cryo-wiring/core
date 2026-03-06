@@ -39,6 +39,7 @@ from cryo_wiring_core.validate import (
 )
 
 from cryo_wiring_core.builder import (
+    Cooldown,
     CooldownBuilder,
     build_cooldown,
     make_control_lines,
@@ -78,6 +79,7 @@ __all__ = [
     "validate_components",
     "validate_metadata",
     "validate_wiring",
+    "Cooldown",
     "CooldownBuilder",
     "build_cooldown",
     "make_control_lines",

@@ -13,6 +13,7 @@ dependencies = [
     "matplotlib>=3.7",
     "pydantic>=2.0",
     "pyyaml>=6.0",
+    "pyzmq>=27.1.0",
     "rich>=13.0",
 ]
 
@@ -39,3 +40,4 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
+example = ["marimo>=0.10"]
