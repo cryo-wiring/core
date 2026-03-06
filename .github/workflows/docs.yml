@@ -36,6 +36,10 @@ jobs:
           uv sync --group example
           uv run marimo export html-wasm examples/getting_started.py -o site/marimo/index.html --mode run
 
+      - name: Bundle wheel for Pyodide
+        run: |
+          uv build --wheel --out-dir site/marimo/files/
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
