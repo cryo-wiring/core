@@ -15,6 +15,7 @@ def _(mo):
     2. **Per-line overrides** - Add / remove / replace components on individual lines
     3. **Summary** - View wiring summaries as tables
     4. **Diagram** - Generate publication-quality wiring diagrams
+    5. **Export** - Save summary (Markdown) and diagram (SVG) to files
     """)
     return
 
@@ -131,7 +132,39 @@ def _(cooldown, mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 4. Write YAML files
+    ## 4. Export summary and diagram
+
+    Save the wiring summary as Markdown and the diagram as SVG to the output directory.
+    """)
+    return
+
+
+@app.cell
+def _(cooldown, mo):
+    from pathlib import Path as _Path
+
+    _output_dir = _Path(__file__).parent / "output"
+    _output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Markdown summary
+    _md_content = cooldown.summary(fmt="markdown")
+    (_output_dir / "summary.md").write_text(_md_content)
+
+    # SVG diagram
+    cooldown.diagram(output=_output_dir / "wiring.svg", representative=True)
+
+    mo.md(
+        f"Exported to `{_output_dir}`:\n\n"
+        f"- `summary.md`\n"
+        f"- `wiring.svg`"
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 5. Write YAML files
 
     `cooldown.write()` exports the configuration as a set of YAML files
     that follow the [cryo-wiring spec](https://github.com/cryo-wiring/spec).
