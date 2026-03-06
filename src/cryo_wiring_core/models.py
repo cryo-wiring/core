@@ -128,12 +128,14 @@ class ControlLine(BaseModel):
     line_id: str = Field(pattern=r"^C\d+$")
     qubit: str = Field(pattern=r"^Q\d+$")
     stages: dict[Stage, list[Component]] = Field(default_factory=dict)
+    representative: bool = False
 
 
 class ReadoutLine(BaseModel):
     line_id: str = Field(pattern=r"^(RS|RR)\d+$")
     qubits: list[str]
     stages: dict[Stage, list[Component]] = Field(default_factory=dict)
+    representative: bool = False
 
 
 class WiringConfig(BaseModel):

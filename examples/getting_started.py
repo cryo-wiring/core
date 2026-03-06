@@ -111,6 +111,7 @@ def _():
         )
         .add("C00", Stage.STILL, "K&L-LPF")
         .remove("RR00", Stage.CP, index=1)
+        .representative("C00", "RS00", "RR00")
         .build()
     )
 

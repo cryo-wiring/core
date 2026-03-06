@@ -500,6 +500,9 @@ class CooldownBuilder:
             line = line_map.get(op[1])
             if line is None:
                 continue
+            if op[0] == "representative":
+                line.representative = True
+                continue
             stage: Stage = op[2]
             if op[0] == "add":
                 line.stages.setdefault(stage, []).append(self._resolve_ref(op[3]))
@@ -563,6 +566,17 @@ class CooldownBuilder:
                     stages=line_stages,
                 ))
         return WiringConfig(lines=parsed_lines)
+
+    def representative(self, *line_ids: str) -> CooldownBuilder:
+        """Mark line(s) as representative for wiring diagrams.
+
+        Example::
+
+            builder.representative("C00", "RS00", "RR00")
+        """
+        for lid in line_ids:
+            self._overrides.append(("representative", lid))
+        return self
 
     def build(self) -> Cooldown:
         """Build a :class:`Cooldown` result object.
@@ -679,12 +693,16 @@ class CooldownBuilder:
 
     def _apply_overrides_to_lines(self, lines_dicts: list[dict], module_stages: dict[Stage, ComponentList]) -> list[dict]:
         """Inject spec-format stage overrides into line dicts."""
+        # Collect representative line IDs
+        rep_ids = {op[1] for op in self._overrides if op[0] == "representative"}
         result = []
         for line_dict in lines_dicts:
             d = dict(line_dict)
             overrides = self._overrides_for_line(d["line_id"], module_stages)
             if overrides:
                 d["stages"] = overrides
+            if d["line_id"] in rep_ids:
+                d["representative"] = True
             result.append(d)
         return result
 

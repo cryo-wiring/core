@@ -274,6 +274,9 @@ def _draw_dut(
 
 
 def _pick_representative(config: WiringConfig) -> list[ControlLine | ReadoutLine]:
+    flagged = [l for l in config.lines if l.representative]
+    if flagged:
+        return flagged
     return [config.lines[0]] if config.lines else []
 
 

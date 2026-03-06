@@ -38,6 +38,8 @@ def _serialize_line(line: ControlLine | ReadoutLine) -> dict:
         comps = line.stages.get(stage, [])
         stages[stage.value] = [_serialize_component(c) for c in comps]
     result["stages"] = stages
+    if line.representative:
+        result["representative"] = True
     return result
 
 
