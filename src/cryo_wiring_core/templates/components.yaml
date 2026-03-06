@@ -1,0 +1,35 @@
+XMA-10dB:
+  type: attenuator
+  model: XMA-2082-6431-10
+  value_dB: 10
+
+XMA-20dB:
+  type: attenuator
+  model: XMA-2082-6431-20
+  value_dB: 20
+
+LPF-KL:
+  type: filter
+  model: K&L-6L250-12000
+  filter_type: Lowpass
+
+Eccosorb:
+  type: filter
+  model: XMA-EF-03
+  filter_type: Eccosorb
+
+ISO-LNF:
+  type: isolator
+  model: LNF-ISC4_12A
+
+HEMT-LNF:
+  type: amplifier
+  model: LNF-LNC03_14A
+  amplifier_type: HEMT
+  gain_dB: 40
+
+RT-MITEQ:
+  type: amplifier
+  model: MITEQ-AFS3-04001200-10-CR-4
+  amplifier_type: RT
+  gain_dB: 20
