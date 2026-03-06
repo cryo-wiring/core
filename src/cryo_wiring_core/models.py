@@ -115,23 +115,8 @@ class Amplifier(_ComponentBase):
         return self.gain_dB
 
 
-class CustomComponent(_ComponentBase):
-    """User-defined component (DC block, mixer, switch, etc.)."""
-
-    type: Literal["custom"] = "custom"
-    custom_type: str = ""
-
-    @property
-    def label(self) -> str:
-        return self.custom_type or self.model
-
-    @property
-    def summary_label(self) -> str:
-        return self.custom_type or self.model
-
-
 Component = Annotated[
-    Union[Attenuator, Filter, Isolator, Amplifier, CustomComponent],
+    Union[Attenuator, Filter, Isolator, Amplifier],
     Field(discriminator="type"),
 ]
 
