@@ -13,11 +13,7 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 from cryo_wiring_core.models import (
-    Amplifier,
-    Attenuator,
     ControlLine,
-    Filter,
-    Isolator,
     ReadoutLine,
     Stage,
     STAGE_ORDER,
@@ -61,18 +57,7 @@ _ARROW_SIZE = 0.06      # arrow head size for direction indicators
 
 def _comp_label(comp) -> str:
     """Short label for a component."""
-    if isinstance(comp, Attenuator):
-        return f"{comp.value_dB:.0f} dB"
-    if isinstance(comp, Filter):
-        if comp.filter_type:
-            name = comp.filter_type
-            return "Ecco." if name.lower().startswith("ecco") else name[:5]
-        return "FLT"
-    if isinstance(comp, Isolator):
-        return "ISO"
-    if isinstance(comp, Amplifier):
-        return f"+{comp.gain_dB:.0f} dB"
-    return "?"
+    return comp.label
 
 
 def _max_components_per_stage(

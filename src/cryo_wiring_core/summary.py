@@ -5,11 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from cryo_wiring_core.models import (
-    Amplifier,
-    Attenuator,
     ControlLine,
-    Filter,
-    Isolator,
     ReadoutLine,
     Stage,
     STAGE_ORDER,
@@ -33,18 +29,9 @@ def line_summary(line: ControlLine | ReadoutLine) -> dict:
 
     for stage, components in line.stages.items():
         for comp in components:
-            if isinstance(comp, Attenuator):
-                total_atten += comp.value_dB
-                stage_components[stage].append(f"ATT {comp.value_dB:.0f}dB")
-            elif isinstance(comp, Filter):
-                ft = comp.filter_type or "filter"
-                stage_components[stage].append(ft)
-            elif isinstance(comp, Isolator):
-                stage_components[stage].append("ISO")
-            elif isinstance(comp, Amplifier):
-                total_gain += comp.gain_dB
-                at = comp.amplifier_type or "AMP"
-                stage_components[stage].append(f"{at} +{comp.gain_dB:.0f}dB")
+            total_atten += comp.attenuation
+            total_gain += comp.gain
+            stage_components[stage].append(comp.summary_label)
 
     return {
         "line_id": line.line_id,

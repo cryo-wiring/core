@@ -20,38 +20,122 @@ class Stage(str, Enum):
 STAGE_ORDER = [Stage.RT, Stage.K50, Stage.K4, Stage.STILL, Stage.CP, Stage.MXC]
 
 
-class Attenuator(BaseModel):
-    type: Literal["attenuator"] = "attenuator"
+# -- Component models --
+
+
+class _ComponentBase(BaseModel):
+    """Common fields shared by all component types."""
+
     model: str
     serial: str = ""
+
+    @property
+    def label(self) -> str:
+        """Short display label for wiring diagrams."""
+        return "?"
+
+    @property
+    def summary_label(self) -> str:
+        """Descriptive label for summary tables."""
+        return self.label
+
+    @property
+    def attenuation(self) -> float:
+        """Attenuation contributed by this component (dB). Override in subclasses."""
+        return 0.0
+
+    @property
+    def gain(self) -> float:
+        """Gain contributed by this component (dB). Override in subclasses."""
+        return 0.0
+
+
+class Attenuator(_ComponentBase):
+    type: Literal["attenuator"] = "attenuator"
     value_dB: float = 0.0
 
+    @property
+    def label(self) -> str:
+        return f"{self.value_dB:.0f} dB"
 
-class Filter(BaseModel):
+    @property
+    def summary_label(self) -> str:
+        return f"ATT {self.value_dB:.0f}dB"
+
+    @property
+    def attenuation(self) -> float:
+        return self.value_dB
+
+
+class Filter(_ComponentBase):
     type: Literal["filter"] = "filter"
-    model: str
-    serial: str = ""
     filter_type: str = ""
 
+    @property
+    def label(self) -> str:
+        if self.filter_type:
+            name = self.filter_type
+            return "Ecco." if name.lower().startswith("ecco") else name[:5]
+        return "FLT"
 
-class Isolator(BaseModel):
+    @property
+    def summary_label(self) -> str:
+        return self.filter_type or "filter"
+
+
+class Isolator(_ComponentBase):
     type: Literal["isolator"] = "isolator"
-    model: str
-    serial: str = ""
+
+    @property
+    def label(self) -> str:
+        return "ISO"
+
+    @property
+    def summary_label(self) -> str:
+        return "ISO"
 
 
-class Amplifier(BaseModel):
+class Amplifier(_ComponentBase):
     type: Literal["amplifier"] = "amplifier"
-    model: str
-    serial: str = ""
     amplifier_type: str = ""
     gain_dB: float = 0.0
 
+    @property
+    def label(self) -> str:
+        return f"+{self.gain_dB:.0f} dB"
+
+    @property
+    def summary_label(self) -> str:
+        at = self.amplifier_type or "AMP"
+        return f"{at} +{self.gain_dB:.0f}dB"
+
+    @property
+    def gain(self) -> float:
+        return self.gain_dB
+
+
+class CustomComponent(_ComponentBase):
+    """User-defined component (DC block, mixer, switch, etc.)."""
+
+    type: Literal["custom"] = "custom"
+    custom_type: str = ""
+
+    @property
+    def label(self) -> str:
+        return self.custom_type or self.model
+
+    @property
+    def summary_label(self) -> str:
+        return self.custom_type or self.model
+
 
 Component = Annotated[
-    Union[Attenuator, Filter, Isolator, Amplifier],
+    Union[Attenuator, Filter, Isolator, Amplifier, CustomComponent],
     Field(discriminator="type"),
 ]
+
+
+# -- Line & config models --
 
 
 class ControlLine(BaseModel):
