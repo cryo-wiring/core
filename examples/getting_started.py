@@ -1,10 +1,15 @@
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#     "cryo-wiring-core @ git+https://github.com/cryo-wiring/core.git",
 #     "marimo",
+#     "pydantic>=2.0",
+#     "pyyaml>=6.0",
+#     "jsonschema>=4.23",
+#     "matplotlib>=3.7",
+#     "rich>=13.0",
 # ]
 # ///
+
 import marimo
 
 __generated_with = "0.20.4"
@@ -12,26 +17,16 @@ app = marimo.App(width="medium")
 
 
 @app.cell
-def _():
+async def _():
     import marimo as mo
     import sys as _sys
 
-    # In Pyodide (WASM), install from the wheel bundled alongside this notebook
+    # Install cryo-wiring-core in Pyodide (WASM) environment
     if "pyodide" in _sys.modules:
         import micropip as _micropip
 
-        await _micropip.install(
-            ["jsonschema", "matplotlib", "pydantic", "pyyaml", "rich"]
-        )
-        _WHEEL = "cryo_wiring_core-0.1.0-py3-none-any.whl"
-        try:
-            await _micropip.install(f"./files/{_WHEEL}", deps=False)
-        except Exception:
-            await _micropip.install(
-                f"https://cryo-wiring.github.io/core/marimo/files/{_WHEEL}",
-                deps=False,
-            )
-
+        _WHEEL_URL = "https://github.com/cryo-wiring/core/releases/download/v0.1.0/cryo_wiring_core-0.1.0-py3-none-any.whl"
+        await _micropip.install(_WHEEL_URL)
     return (mo,)
 
 
