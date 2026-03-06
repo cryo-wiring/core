@@ -34,7 +34,7 @@ jobs:
       - name: Export marimo notebook as WASM
         run: |
           uv sync --group example
-          uv run marimo export html-wasm examples/getting_started.py -o site/marimo/index.html --mode run
+          uv run marimo export html-wasm examples/getting_started.py -o site/marimo/index.html --mode edit
 
       - name: Bundle wheel for Pyodide
         run: |
