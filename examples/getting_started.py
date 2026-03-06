@@ -178,7 +178,7 @@ def _(cooldown, mo):
 
     # Markdown summary
     _md_content = cooldown.summary(fmt="markdown")
-    (_output_dir / "summary.md").write_text(_md_content)
+    (_output_dir / "README.md").write_text(_md_content)
 
     # SVG diagram
     cooldown.diagram(output=_output_dir / "wiring.svg", representative=True)
