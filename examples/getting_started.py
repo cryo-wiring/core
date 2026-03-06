@@ -77,44 +77,42 @@ def _():
         Stage,
     )
 
+    # Component catalog
+    catalog = {
+        "XMA-10dB": Attenuator(model="XMA-2082-6431-10", value_dB=10),
+        "XMA-20dB": Attenuator(model="XMA-2082-6431-20", value_dB=20),
+        "Eccosorb": Filter(model="XMA-EF-03", filter_type="Eccosorb"),
+        "K&L-LPF": Filter(model="K&L-5VLF", filter_type="Lowpass"),
+        "RT-AMP": Amplifier(model="MITEQ-AFS3", amplifier_type="RT", gain_dB=20),
+        "LNF-HEMT": Amplifier(model="LNF-LNC03_14A", amplifier_type="HEMT", gain_dB=40),
+        "LNF-ISO": Isolator(model="LNF-ISC4_12A"),
+    }
+
+    # Build cooldown
     cooldown = (
-        CooldownBuilder(num_qubits=8)
+        CooldownBuilder(num_qubits=8, catalog=catalog)
         .metadata(fridge="your-cryo", chip_name="sample-8q")
-        # -- Component catalog --
-        .component("XMA-10dB", Attenuator(model="XMA-2082-6431-10", value_dB=10))
-        .component("XMA-20dB", Attenuator(model="XMA-2082-6431-20", value_dB=20))
-        .component("Eccosorb", Filter(model="XMA-EF-03", filter_type="Eccosorb"))
-        .component("K&L-LPF", Filter(model="K&L-5VLF", filter_type="Lowpass"))
-        .component("RT-AMP", Amplifier(model="MITEQ-AFS3", amplifier_type="RT", gain_dB=20))
-        .component("LNF-HEMT", Amplifier(model="LNF-LNC03_14A", amplifier_type="HEMT", gain_dB=40))
-        .component("LNF-ISO", Isolator(model="LNF-ISC4_12A"))
-        # -- Modules (reference components by key) --
-        .control_module("ctrl", {
+        .control({
             Stage.K50: ["XMA-10dB"],
             Stage.K4: ["XMA-20dB"],
             Stage.MXC: ["XMA-20dB", "Eccosorb"],
         })
-        .readout_send_module("rs", {
-            Stage.K50: ["XMA-10dB"],
-            Stage.K4: ["XMA-10dB"],
-        })
-        .readout_return_module("rr", {
+        .readout_send({Stage.K50: ["XMA-10dB"], Stage.K4: ["XMA-10dB"]})
+        .readout_return({
             Stage.RT: ["RT-AMP"],
             Stage.K50: ["LNF-HEMT"],
             Stage.CP: ["LNF-ISO", "LNF-ISO"],
         })
-        # -- Per-line overrides (also using catalog keys) --
-        # Add a filter at Still on C00
         .add("C00", Stage.STILL, "K&L-LPF")
-        # Bulk override: drop MXC filter and swap 4K attenuator on C03 and C05
-        .for_lines("C03", "C05")
-            .remove(Stage.MXC, component_type="filter")
-            .replace(Stage.K4, 0, "XMA-10dB")
-        .end()
-        # Remove second isolator at CP on RR00
         .remove("RR00", Stage.CP, index=1)
         .build()
     )
+
+    # Per-line overrides
+    with cooldown.for_lines("C03", "C05") as lines:
+        lines.remove(Stage.MXC, component_type=Filter)
+        lines.replace(Stage.K4, 0, "XMA-10dB")
+
     return (cooldown,)
 
 

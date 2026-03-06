@@ -26,14 +26,14 @@ lines:
   qubit: Q03
   module: ctrl
   stages:
-    MXC:
-      remove:
-      - Eccosorb
     4K:
       remove:
       - XMA-20dB
       add:
       - XMA-10dB
+    MXC:
+      remove:
+      - Eccosorb
 - line_id: C04
   qubit: Q04
   module: ctrl
@@ -41,14 +41,14 @@ lines:
   qubit: Q05
   module: ctrl
   stages:
-    MXC:
-      remove:
-      - Eccosorb
     4K:
       remove:
       - XMA-20dB
       add:
       - XMA-10dB
+    MXC:
+      remove:
+      - Eccosorb
 - line_id: C06
   qubit: Q06
   module: ctrl

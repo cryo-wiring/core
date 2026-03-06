@@ -7,50 +7,45 @@ Two usage patterns:
     from cryo_wiring_core.builder import build_cooldown
 
     build_cooldown(
-        output_dir="anemone/current",
-        fridge="anemone",
+        output_dir="my-cryo/current",
+        fridge="my-cryo",
         chip_name="sample-chip",
         num_qubits=16,
     )
 
-2. **Model-based** — build from component objects (notebooks, scripts)::
+2. **Catalog + Builder** — define components, build wiring, apply overrides::
 
-    from cryo_wiring_core.builder import CooldownBuilder
-    from cryo_wiring_core.models import Attenuator, Isolator, Amplifier, Stage
+    from cryo_wiring_core import *
+
+    catalog = {
+        "XMA-10dB": Attenuator(model="XMA-10dB", value_dB=10),
+        "XMA-20dB": Attenuator(model="XMA-20dB", value_dB=20),
+        "LNF-ISO":  Isolator(model="LNF-ISC4_12A"),
+        "LNF-HEMT": Amplifier(model="LNF-HEMT", amplifier_type="HEMT", gain_dB=40),
+    }
 
     cooldown = (
-        CooldownBuilder(num_qubits=16)
-        .control_module("my_ctrl", {
-            Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
-            Stage.K4: [Attenuator(model="XMA-20dB", value_dB=20)],
-            Stage.MXC: [Attenuator(model="XMA-20dB", value_dB=20)],
+        CooldownBuilder(num_qubits=8, catalog=catalog)
+        .metadata(fridge="my-cryo", chip_name="sample-8q")
+        .control({
+            Stage.K50: ["XMA-10dB"],
+            Stage.MXC: ["XMA-20dB"],
         })
-        .readout_send_module("my_rs", {
-            Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
-        })
-        .readout_return_module("my_rr", {
-            Stage.CP: [Isolator(model="LNF-ISC"), Isolator(model="LNF-ISC")],
-            Stage.K50: [Amplifier(model="HEMT", amplifier_type="HEMT", gain_dB=40)],
+        .readout_return({
+            Stage.CP: ["LNF-ISO", "LNF-ISO"],
+            Stage.K50: ["LNF-HEMT"],
         })
         .build()
     )
 
-    # Rich result object
-    cooldown.control          # WiringConfig
-    cooldown.summary()        # print summary table
-    cooldown.diagram("out.svg")
-    cooldown.write("output/", fridge="anemone")
+    cooldown.summary()
+    cooldown.diagram("wiring.svg")
+    cooldown.write("output/", fridge="my-cryo")
 
-    # Bulk per-line overrides
-    cooldown = (
-        CooldownBuilder(num_qubits=8)
-        .control_module("ctrl", {...})
-        .for_lines("C00", "C03", "C05")
-            .add(Stage.STILL, Filter(model="K&L", filter_type="Lowpass"))
-            .remove(Stage.MXC, component_type="filter")
-        .end()
-        .build()
-    )
+    # Bulk per-line overrides (context manager)
+    with cooldown.for_lines("C03", "C05") as lines:
+        lines.remove(Stage.MXC, component_type=Filter)
+        lines.replace(Stage.K4, 0, "XMA-10dB")
 """
 
 from __future__ import annotations
@@ -291,56 +286,105 @@ class Cooldown:
             purpose=purpose,
         )
 
+    def for_lines(self, *line_ids: str) -> _LineScope:
+        """Context manager for bulk per-line overrides.
+
+        Example::
+
+            with cooldown.for_lines("C03", "C05") as lines:
+                lines.remove(Stage.MXC, component_type=Filter)
+                lines.replace(Stage.K4, 0, "XMA-10dB")
+        """
+        if self._builder is None:
+            raise RuntimeError("for_lines() requires a builder reference.")
+        return _LineScope(self, list(line_ids))
+
 
 # -- Scoped builder for bulk per-line overrides --
 
-class _LineScope:
-    """Scoped builder returned by ``CooldownBuilder.for_lines()``.
+ComponentType = type
 
-    Collects add/remove/replace operations for a fixed set of line IDs,
-    then returns to the parent builder via ``.end()``.
+def _resolve_component_type(component_type: str | ComponentType | None) -> str | None:
+    """Normalize component_type to a string (e.g., Filter -> 'filter')."""
+    if component_type is None:
+        return None
+    if isinstance(component_type, str):
+        return component_type
+    # Accept class: Filter -> "filter", Attenuator -> "attenuator", etc.
+    if hasattr(component_type, "model_fields") and "type" in component_type.model_fields:
+        return component_type.model_fields["type"].default
+    raise ValueError(f"Invalid component_type: {component_type!r}")
+
+
+class _LineScope:
+    """Scoped context manager for bulk per-line overrides.
+
+    Use as a context manager::
+
+        with cooldown.for_lines("C03", "C05") as lines:
+            lines.remove(Stage.MXC, component_type=Filter)
+            lines.replace(Stage.K4, 0, "XMA-10dB")
     """
 
-    def __init__(self, parent: CooldownBuilder, line_ids: list[str]) -> None:
-        self._parent = parent
+    def __init__(self, cooldown: Cooldown, line_ids: list[str]) -> None:
+        self._cooldown = cooldown
+        self._builder = cooldown._builder
         self._line_ids = line_ids
+        self._override_start: int = 0
+
+    def __enter__(self) -> _LineScope:
+        self._override_start = len(self._builder._overrides)
+        return self
+
+    def __exit__(self, *exc) -> None:
+        # Apply only the new overrides added during this scope
+        new_overrides = self._builder._overrides[self._override_start:]
+        for cfg in self._cooldown:
+            self._builder._apply_overrides_subset(cfg, new_overrides)
 
     def add(
         self,
         stage: Stage,
-        component: ComponentRef,
+        component: str,
     ) -> _LineScope:
         """Add a component at *stage* on all scoped lines."""
+        if component not in self._builder._catalog:
+            raise ValueError(
+                f"Unknown component key: {component!r}. "
+                "Register it in the catalog."
+            )
         for lid in self._line_ids:
-            self._parent.add(lid, stage, component)
+            self._builder._overrides.append(("add", lid, stage, component))
         return self
 
     def remove(
         self,
         stage: Stage,
         *,
-        component_type: str | None = None,
+        component_type: str | ComponentType | None = None,
         index: int | None = None,
     ) -> _LineScope:
         """Remove component(s) at *stage* on all scoped lines."""
+        ct = _resolve_component_type(component_type)
         for lid in self._line_ids:
-            self._parent.remove(lid, stage, component_type=component_type, index=index)
+            self._builder._overrides.append(("remove", lid, stage, ct, index))
         return self
 
     def replace(
         self,
         stage: Stage,
         index: int,
-        component: ComponentRef,
+        component: str,
     ) -> _LineScope:
         """Replace a component at *stage*/*index* on all scoped lines."""
+        if component not in self._builder._catalog:
+            raise ValueError(
+                f"Unknown component key: {component!r}. "
+                "Register it in the catalog."
+            )
         for lid in self._line_ids:
-            self._parent.replace(lid, stage, index, component)
+            self._builder._overrides.append(("replace", lid, stage, index, component))
         return self
-
-    def end(self) -> CooldownBuilder:
-        """Return to the parent builder."""
-        return self._parent
 
 
 # -- Model-based builder --
@@ -350,16 +394,19 @@ ComponentList = list[ComponentRef]
 
 
 class CooldownBuilder:
-    """Fluent builder for constructing wiring configurations from component models.
+    """Fluent builder for constructing wiring configurations.
 
     Example::
 
+        catalog = {
+            "XMA-10dB": Attenuator(model="XMA-10dB", value_dB=10),
+            "XMA-20dB": Attenuator(model="XMA-20dB", value_dB=20),
+        }
+
         cooldown = (
-            CooldownBuilder(num_qubits=8)
-            .control_module("ctrl", {
-                Stage.K50: [Attenuator(model="XMA-10dB", value_dB=10)],
-                Stage.MXC: [Attenuator(model="XMA-20dB", value_dB=20)],
-            })
+            CooldownBuilder(num_qubits=8, catalog=catalog)
+            .metadata(fridge="my-cryo", chip_name="sample-8q")
+            .control({Stage.K50: ["XMA-10dB"], Stage.MXC: ["XMA-20dB"]})
             .build()
         )
     """
@@ -367,11 +414,12 @@ class CooldownBuilder:
     def __init__(
         self,
         num_qubits: int,
+        catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] | None = None,
         qubits_per_readout_line: int = 4,
     ) -> None:
         self.num_qubits = num_qubits
         self.qubits_per_readout_line = qubits_per_readout_line
-        self._catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] = {}
+        self._catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] = dict(catalog or {})
         self._ctrl: tuple[str, dict[Stage, ComponentList]] | None = None
         self._rs: tuple[str, dict[Stage, ComponentList]] | None = None
         self._rr: tuple[str, dict[Stage, ComponentList]] | None = None
@@ -382,19 +430,6 @@ class CooldownBuilder:
         self._cooldown_date: str = ""
         self._operator: str = ""
         self._purpose: str = ""
-
-    def component(
-        self,
-        key: str,
-        comp: Attenuator | Filter | Isolator | Amplifier,
-    ) -> CooldownBuilder:
-        """Register a component in the catalog.
-
-        Registered components can be referenced by *key* in module stage
-        definitions and will be output as string references in YAML.
-        """
-        self._catalog[key] = comp
-        return self
 
     def metadata(
         self,
@@ -415,58 +450,63 @@ class CooldownBuilder:
         self._purpose = purpose
         return self
 
-    def control_module(
+    def _validate_stage_refs(self, stages: dict[Stage, ComponentList]) -> None:
+        """Validate that all string refs in stages are registered in the catalog."""
+        for stage, comps in stages.items():
+            for ref in comps:
+                if isinstance(ref, str) and ref not in self._catalog:
+                    raise ValueError(
+                        f"Unknown component key: {ref!r} at stage {stage.value}. "
+                        "Register it in the catalog."
+                    )
+
+    def control(
         self,
-        name: str,
         stages: dict[Stage, ComponentList],
+        name: str = "ctrl",
     ) -> CooldownBuilder:
         """Define the control module with components per stage."""
+        self._validate_stage_refs(stages)
         self._ctrl = (name, stages)
         return self
 
-    def readout_send_module(
+    def readout_send(
         self,
-        name: str,
         stages: dict[Stage, ComponentList],
+        name: str = "rs",
     ) -> CooldownBuilder:
         """Define the readout-send module with components per stage."""
+        self._validate_stage_refs(stages)
         self._rs = (name, stages)
         return self
 
-    def readout_return_module(
+    def readout_return(
         self,
-        name: str,
         stages: dict[Stage, ComponentList],
+        name: str = "rr",
     ) -> CooldownBuilder:
         """Define the readout-return module with components per stage."""
+        self._validate_stage_refs(stages)
         self._rr = (name, stages)
         return self
-
-    def for_lines(self, *line_ids: str) -> _LineScope:
-        """Start a scoped builder for bulk overrides on the given lines.
-
-        Example::
-
-            builder.for_lines("C00", "C03", "C05")
-                .add(Stage.STILL, Filter(model="K&L", filter_type="Lowpass"))
-                .remove(Stage.MXC, component_type="filter")
-            .end()
-        """
-        return _LineScope(self, list(line_ids))
 
     def add(
         self,
         line_ids: LineIds,
         stage: Stage,
-        component: ComponentRef,
+        component: str,
     ) -> CooldownBuilder:
         """Add a component to line(s) at a given stage.
 
-        *component* can be a component object or a catalog key string::
+        *component* must be a catalog key::
 
-            b.add("C00", Stage.STILL, "K&L-LPF")
-            b.add("C00", Stage.STILL, Filter(model="K&L-5VLF", filter_type="Lowpass"))
+            builder.add("C00", Stage.STILL, "K&L-LPF")
         """
+        if component not in self._catalog:
+            raise ValueError(
+                f"Unknown component key: {component!r}. "
+                "Register it in the catalog."
+            )
         for lid in _normalize_line_ids(line_ids):
             self._overrides.append(("add", lid, stage, component))
         return self
@@ -476,15 +516,16 @@ class CooldownBuilder:
         line_ids: LineIds,
         stage: Stage,
         *,
-        component_type: str | None = None,
+        component_type: str | ComponentType | None = None,
         index: int | None = None,
     ) -> CooldownBuilder:
         """Remove component(s) from line(s) at a given stage.
 
-        ``line_ids`` can be a single string or a list of strings.
+        *component_type* accepts a class (``Filter``) or string (``"filter"``).
         """
+        ct = _resolve_component_type(component_type)
         for lid in _normalize_line_ids(line_ids):
-            self._overrides.append(("remove", lid, stage, component_type, index))
+            self._overrides.append(("remove", lid, stage, ct, index))
         return self
 
     def replace(
@@ -492,20 +533,25 @@ class CooldownBuilder:
         line_ids: LineIds,
         stage: Stage,
         index: int,
-        component: ComponentRef,
+        component: str,
     ) -> CooldownBuilder:
         """Replace a component at a specific position on line(s).
 
-        *component* can be a component object or a catalog key string.
+        *component* must be a catalog key.
         """
+        if component not in self._catalog:
+            raise ValueError(
+                f"Unknown component key: {component!r}. "
+                "Register it in the catalog."
+            )
         for lid in _normalize_line_ids(line_ids):
             self._overrides.append(("replace", lid, stage, index, component))
         return self
 
-    def _apply_overrides(self, config: WiringConfig) -> None:
-        """Apply per-line overrides to a built WiringConfig (in-place)."""
+    def _apply_overrides_subset(self, config: WiringConfig, overrides: list[tuple]) -> None:
+        """Apply a subset of overrides to a WiringConfig (in-place)."""
         line_map = {line.line_id: line for line in config.lines}
-        for op in self._overrides:
+        for op in overrides:
             line = line_map.get(op[1])
             if line is None:
                 continue
@@ -530,6 +576,10 @@ class CooldownBuilder:
                 comps = line.stages.get(stage, [])
                 if 0 <= idx < len(comps):
                     comps[idx] = self._resolve_ref(comp)
+
+    def _apply_overrides(self, config: WiringConfig) -> None:
+        """Apply all overrides to a built WiringConfig (in-place)."""
+        self._apply_overrides_subset(config, self._overrides)
 
     def _resolve_ref(self, ref: ComponentRef) -> Attenuator | Filter | Isolator | Amplifier:
         """Resolve a component reference (key string or object) to a component."""
@@ -584,7 +634,7 @@ class CooldownBuilder:
             cooldown.diagram("out.svg")
         """
         if self._ctrl is None:
-            raise ValueError("Control module not defined. Call control_module() first.")
+            raise ValueError("Control module not defined. Call .control() first.")
 
         ctrl_name, ctrl_stages = self._ctrl
         ctrl_lines = make_control_lines(self.num_qubits, ctrl_name)
@@ -728,7 +778,7 @@ class CooldownBuilder:
     ) -> Path:
         """Write the complete cooldown directory as YAML files."""
         if self._ctrl is None:
-            raise ValueError("Control module not defined. Call control_module() first.")
+            raise ValueError("Control module not defined. Call .control() first.")
 
         output = Path(output_dir)
         output.mkdir(parents=True, exist_ok=True)
