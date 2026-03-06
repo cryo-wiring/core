@@ -34,7 +34,8 @@ pip install cryo-wiring-core
 
 ```python
 from cryo_wiring_core import (
-    Amplifier, Attenuator, CooldownBuilder, Filter, Isolator, Stage,
+    Amplifier, Attenuator, ChipConfig, CooldownBuilder,
+    CooldownMetadata, Filter, Isolator, Stage,
 )
 
 # 1. Component catalog
@@ -50,19 +51,22 @@ catalog = {
 
 # 2. Build cooldown (reference components by key)
 cooldown = (
-    CooldownBuilder(num_qubits=8, catalog=catalog)
-    .metadata(fridge="your-cryo", chip_name="sample-8q")
-    .control({
-        Stage.K50: ["XMA-10dB"],
-        Stage.K4: ["XMA-20dB"],
-        Stage.MXC: ["XMA-20dB", "Eccosorb"],
-    })
-    .readout_send({Stage.K50: ["XMA-10dB"], Stage.K4: ["XMA-10dB"]})
-    .readout_return({
-        Stage.RT: ["RT-AMP"],
-        Stage.K50: ["LNF-HEMT"],
-        Stage.CP: ["LNF-ISO", "LNF-ISO"],
-    })
+    CooldownBuilder(
+        chip=ChipConfig(name="sample-8q", num_qubits=8, qubits_per_readout_line=4),
+        metadata=CooldownMetadata(fridge="your-cryo", cooldown_id="cd001", date="2026-03-06"),
+        catalog=catalog,
+        control={
+            Stage.K50: ["XMA-10dB"],
+            Stage.K4: ["XMA-20dB"],
+            Stage.MXC: ["XMA-20dB", "Eccosorb"],
+        },
+        readout_send={Stage.K50: ["XMA-10dB"], Stage.K4: ["XMA-10dB"]},
+        readout_return={
+            Stage.RT: ["RT-AMP"],
+            Stage.K50: ["LNF-HEMT"],
+            Stage.CP: ["LNF-ISO", "LNF-ISO"],
+        },
+    )
     .add("C00", Stage.STILL, "K&L-LPF")
     .remove("RR00", Stage.CP, index=1)
     .build()
@@ -81,7 +85,7 @@ md = cooldown.summary(fmt="markdown")
 cooldown.diagram(output="wiring.svg", representative=True)
 
 # Export YAML files
-cooldown.write("output/", fridge="your-cryo", chip_name="sample-8q")
+cooldown.write("output/")
 ```
 
 ### Load & inspect an existing cooldown

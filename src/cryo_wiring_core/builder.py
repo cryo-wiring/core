@@ -25,22 +25,19 @@ Two usage patterns:
     }
 
     cooldown = (
-        CooldownBuilder(num_qubits=8, catalog=catalog)
-        .metadata(fridge="my-cryo", chip_name="sample-8q")
-        .control({
-            Stage.K50: ["XMA-10dB"],
-            Stage.MXC: ["XMA-20dB"],
-        })
-        .readout_return({
-            Stage.CP: ["LNF-ISO", "LNF-ISO"],
-            Stage.K50: ["LNF-HEMT"],
-        })
+        CooldownBuilder(
+            chip=ChipConfig(name="sample-8q", num_qubits=8),
+            metadata=CooldownMetadata(fridge="my-cryo", cooldown_id="cd001", date="2026-03-06"),
+            catalog=catalog,
+            control={Stage.K50: ["XMA-10dB"], Stage.MXC: ["XMA-20dB"]},
+            readout_return={Stage.CP: ["LNF-ISO", "LNF-ISO"], Stage.K50: ["LNF-HEMT"]},
+        )
         .build()
     )
 
     cooldown.summary()
     cooldown.diagram("wiring.svg")
-    cooldown.write("output/", fridge="my-cryo")
+    cooldown.write("output/")
 
     # Bulk per-line overrides (context manager)
     with cooldown.for_lines("C03", "C05") as lines:
@@ -263,28 +260,11 @@ class Cooldown:
             metadata=self.metadata,
         )
 
-    def write(
-        self,
-        output_dir: str | Path,
-        fridge: str,
-        chip_name: str | None = None,
-        cooldown_id: str = "cd001",
-        cooldown_date: str | None = None,
-        operator: str = "",
-        purpose: str = "",
-    ) -> Path:
+    def write(self, output_dir: str | Path) -> Path:
         """Write the complete cooldown directory as YAML files."""
         if self._builder is None:
             raise RuntimeError("write() requires a builder reference. Use CooldownBuilder.build().")
-        return self._builder.write(
-            output_dir,
-            fridge=fridge,
-            chip_name=chip_name,
-            cooldown_id=cooldown_id,
-            cooldown_date=cooldown_date,
-            operator=operator,
-            purpose=purpose,
-        )
+        return self._builder.write(output_dir)
 
     def for_lines(self, *line_ids: str) -> _LineScope:
         """Context manager for bulk per-line overrides.
@@ -396,59 +376,54 @@ ComponentList = list[ComponentRef]
 class CooldownBuilder:
     """Fluent builder for constructing wiring configurations.
 
+    All data (chip, metadata, catalog, modules) is passed to the constructor.
+    Chain methods are used only for per-line overrides (add/remove/replace).
+
     Example::
 
-        catalog = {
-            "XMA-10dB": Attenuator(model="XMA-10dB", value_dB=10),
-            "XMA-20dB": Attenuator(model="XMA-20dB", value_dB=20),
-        }
-
         cooldown = (
-            CooldownBuilder(num_qubits=8, catalog=catalog)
-            .metadata(fridge="my-cryo", chip_name="sample-8q")
-            .control({Stage.K50: ["XMA-10dB"], Stage.MXC: ["XMA-20dB"]})
+            CooldownBuilder(
+                chip=ChipConfig(name="sample-8q", num_qubits=8),
+                metadata=CooldownMetadata(fridge="my-cryo", cooldown_id="cd001", date="2026-03-06"),
+                catalog=catalog,
+                control={Stage.K50: ["XMA-10dB"], Stage.MXC: ["XMA-20dB"]},
+            )
+            .add("C00", Stage.STILL, "K&L-LPF")
             .build()
         )
     """
 
     def __init__(
         self,
-        num_qubits: int,
+        chip: ChipConfig,
+        control: dict[Stage, ComponentList],
         catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] | None = None,
-        qubits_per_readout_line: int = 4,
-    ) -> None:
-        self.num_qubits = num_qubits
-        self.qubits_per_readout_line = qubits_per_readout_line
-        self._catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] = dict(catalog or {})
-        self._ctrl: tuple[str, dict[Stage, ComponentList]] | None = None
-        self._rs: tuple[str, dict[Stage, ComponentList]] | None = None
-        self._rr: tuple[str, dict[Stage, ComponentList]] | None = None
-        self._overrides: list[tuple] = []
-        self._fridge: str = ""
-        self._chip_name: str = ""
-        self._cooldown_id: str = "cd001"
-        self._cooldown_date: str = ""
-        self._operator: str = ""
-        self._purpose: str = ""
-
-    def metadata(
-        self,
+        metadata: CooldownMetadata | None = None,
+        readout_send: dict[Stage, ComponentList] | None = None,
+        readout_return: dict[Stage, ComponentList] | None = None,
         *,
-        fridge: str = "",
-        chip_name: str = "",
-        cooldown_id: str = "cd001",
-        cooldown_date: str = "",
-        operator: str = "",
-        purpose: str = "",
-    ) -> CooldownBuilder:
-        """Set metadata for the cooldown."""
-        self._fridge = fridge
-        self._chip_name = chip_name
-        self._cooldown_id = cooldown_id
-        self._cooldown_date = cooldown_date
-        self._operator = operator
-        self._purpose = purpose
-        return self
+        control_name: str = "ctrl",
+        readout_send_name: str = "rs",
+        readout_return_name: str = "rr",
+    ) -> None:
+        self._chip = chip
+        self._metadata = metadata
+        self._catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] = dict(catalog or {})
+        self._overrides: list[tuple] = []
+
+        # Validate and store module definitions
+        self._validate_stage_refs(control)
+        self._ctrl: tuple[str, dict[Stage, ComponentList]] = (control_name, control)
+
+        self._rs: tuple[str, dict[Stage, ComponentList]] | None = None
+        if readout_send is not None:
+            self._validate_stage_refs(readout_send)
+            self._rs = (readout_send_name, readout_send)
+
+        self._rr: tuple[str, dict[Stage, ComponentList]] | None = None
+        if readout_return is not None:
+            self._validate_stage_refs(readout_return)
+            self._rr = (readout_return_name, readout_return)
 
     def _validate_stage_refs(self, stages: dict[Stage, ComponentList]) -> None:
         """Validate that all string refs in stages are registered in the catalog."""
@@ -459,36 +434,6 @@ class CooldownBuilder:
                         f"Unknown component key: {ref!r} at stage {stage.value}. "
                         "Register it in the catalog."
                     )
-
-    def control(
-        self,
-        stages: dict[Stage, ComponentList],
-        name: str = "ctrl",
-    ) -> CooldownBuilder:
-        """Define the control module with components per stage."""
-        self._validate_stage_refs(stages)
-        self._ctrl = (name, stages)
-        return self
-
-    def readout_send(
-        self,
-        stages: dict[Stage, ComponentList],
-        name: str = "rs",
-    ) -> CooldownBuilder:
-        """Define the readout-send module with components per stage."""
-        self._validate_stage_refs(stages)
-        self._rs = (name, stages)
-        return self
-
-    def readout_return(
-        self,
-        stages: dict[Stage, ComponentList],
-        name: str = "rr",
-    ) -> CooldownBuilder:
-        """Define the readout-return module with components per stage."""
-        self._validate_stage_refs(stages)
-        self._rr = (name, stages)
-        return self
 
     def add(
         self,
@@ -633,23 +578,22 @@ class CooldownBuilder:
             cooldown.summary()
             cooldown.diagram("out.svg")
         """
-        if self._ctrl is None:
-            raise ValueError("Control module not defined. Call .control() first.")
+        num_qubits = self._chip.num_qubits
 
         ctrl_name, ctrl_stages = self._ctrl
-        ctrl_lines = make_control_lines(self.num_qubits, ctrl_name)
+        ctrl_lines = make_control_lines(num_qubits, ctrl_name)
         control = self._build_wiring_config(ctrl_name, ctrl_stages, ctrl_lines)
 
         if self._rs is not None:
             rs_name, rs_stages = self._rs
-            rs_lines = make_readout_send_lines(self.num_qubits, rs_name, self.qubits_per_readout_line)
+            rs_lines = make_readout_send_lines(num_qubits, rs_name, self._chip.qubits_per_readout_line)
             readout_send = self._build_wiring_config(rs_name, rs_stages, rs_lines)
         else:
             readout_send = WiringConfig(lines=[])
 
         if self._rr is not None:
             rr_name, rr_stages = self._rr
-            rr_lines = make_readout_return_lines(self.num_qubits, rr_name, self.qubits_per_readout_line)
+            rr_lines = make_readout_return_lines(num_qubits, rr_name, self._chip.qubits_per_readout_line)
             readout_return = self._build_wiring_config(rr_name, rr_stages, rr_lines)
         else:
             readout_return = WiringConfig(lines=[])
@@ -657,18 +601,7 @@ class CooldownBuilder:
         for cfg in (control, readout_send, readout_return):
             self._apply_overrides(cfg)
 
-        meta = None
-        if self._fridge or self._chip_name:
-            d = self._cooldown_date or date.today().isoformat()
-            meta = CooldownMetadata(
-                cooldown_id=self._cooldown_id,
-                date=d,
-                fridge=self._fridge,
-                operator=self._operator,
-                purpose=self._purpose,
-            )
-
-        return Cooldown(control, readout_send, readout_return, builder=self, metadata=meta)
+        return Cooldown(control, readout_send, readout_return, builder=self, metadata=self._metadata)
 
     def _component_ref_to_yaml(self, ref: ComponentRef) -> str | dict:
         """Serialize a component ref to YAML: string key or inline dict."""
@@ -766,42 +699,22 @@ class CooldownBuilder:
         lines_with_overrides = self._apply_overrides_to_lines(lines_dicts, stages)
         return make_wiring_yaml(module_def, name, lines_with_overrides)
 
-    def write(
-        self,
-        output_dir: str | Path,
-        fridge: str,
-        chip_name: str | None = None,
-        cooldown_id: str = "cd001",
-        cooldown_date: str | None = None,
-        operator: str = "",
-        purpose: str = "",
-    ) -> Path:
+    def write(self, output_dir: str | Path) -> Path:
         """Write the complete cooldown directory as YAML files."""
-        if self._ctrl is None:
-            raise ValueError("Control module not defined. Call .control() first.")
-
         output = Path(output_dir)
         output.mkdir(parents=True, exist_ok=True)
 
-        d = cooldown_date or date.today().isoformat()
-        cname = chip_name or f"chip-{self.num_qubits}q"
+        num_qubits = self._chip.num_qubits
 
         # metadata.yaml
-        meta = CooldownMetadata(
-            cooldown_id=cooldown_id,
-            date=d,
-            fridge=fridge,
-            operator=operator,
-            purpose=purpose,
-        )
-        (output / "metadata.yaml").write_text(
-            _dump_yaml(meta.model_dump(exclude_defaults=True))
-        )
+        if self._metadata is not None:
+            (output / "metadata.yaml").write_text(
+                _dump_yaml(self._metadata.model_dump(exclude_defaults=True))
+            )
 
         # chip.yaml
-        chip = ChipConfig(name=cname, num_qubits=self.num_qubits)
         (output / "chip.yaml").write_text(
-            _dump_yaml(chip.model_dump())
+            _dump_yaml(self._chip.model_dump())
         )
 
         # components.yaml (if catalog is non-empty)
@@ -814,7 +727,7 @@ class CooldownBuilder:
 
         # control.yaml
         ctrl_name, ctrl_stages = self._ctrl
-        ctrl_lines = make_control_lines(self.num_qubits, ctrl_name)
+        ctrl_lines = make_control_lines(num_qubits, ctrl_name)
         (output / "control.yaml").write_text(
             _dump_yaml(self._module_to_yaml_dict(ctrl_name, ctrl_stages, ctrl_lines))
         )
@@ -822,7 +735,7 @@ class CooldownBuilder:
         # readout_send.yaml
         if self._rs is not None:
             rs_name, rs_stages = self._rs
-            rs_lines = make_readout_send_lines(self.num_qubits, rs_name, self.qubits_per_readout_line)
+            rs_lines = make_readout_send_lines(num_qubits, rs_name, self._chip.qubits_per_readout_line)
             (output / "readout_send.yaml").write_text(
                 _dump_yaml(self._module_to_yaml_dict(rs_name, rs_stages, rs_lines))
             )
@@ -830,7 +743,7 @@ class CooldownBuilder:
         # readout_return.yaml
         if self._rr is not None:
             rr_name, rr_stages = self._rr
-            rr_lines = make_readout_return_lines(self.num_qubits, rr_name, self.qubits_per_readout_line)
+            rr_lines = make_readout_return_lines(num_qubits, rr_name, self._chip.qubits_per_readout_line)
             (output / "readout_return.yaml").write_text(
                 _dump_yaml(self._module_to_yaml_dict(rr_name, rr_stages, rr_lines))
             )
