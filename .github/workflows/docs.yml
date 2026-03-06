@@ -1,0 +1,44 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Build docs
+        run: |
+          uv sync --group docs
+          uv run zensical build
+
+      - name: Export marimo notebook as WASM
+        run: |
+          uv sync --group example
+          uv run marimo export html-wasm examples/getting_started.py -o site/marimo/index.html --mode run
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

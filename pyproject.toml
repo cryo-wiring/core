@@ -40,4 +40,5 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]
+docs = ["zensical"]
 example = ["marimo>=0.10"]

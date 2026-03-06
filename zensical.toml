@@ -1,0 +1,22 @@
+[project]
+site_name = "cryo-wiring-core"
+site_description = "Python library for dilution refrigerator wiring configuration"
+site_url = "https://cryo-wiring.github.io/core/"
+nav = [
+  {"Home" = "index.md"},
+  {"Getting Started" = "getting-started.md"},
+  {"Guide" = [
+    "guide/builder.md",
+    "guide/summary.md",
+    "guide/diagram.md",
+  ]},
+  {"API Reference" = [
+    "reference/models.md",
+    "reference/builder.md",
+    "reference/summary.md",
+    "reference/diagram.md",
+    "reference/loader.md",
+    "reference/validate.md",
+  ]},
+  {"Playground" = "playground.md"},
+]
