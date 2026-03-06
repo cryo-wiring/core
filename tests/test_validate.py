@@ -15,10 +15,10 @@ class TestValidateWiring:
                     "qubit": "Q00",
                     "stages": {
                         "RT": [
-                            {"type": "attenuator", "model": "XMA-10dB", "value_dB": 10}
+                            {"type": "attenuator", "manufacturer": "XMA", "model": "10dB", "value_dB": 10}
                         ],
                         "MXC": [
-                            {"type": "filter", "model": "Ecco", "filter_type": "Eccosorb"}
+                            {"type": "filter", "manufacturer": "XMA", "model": "Ecco", "filter_type": "Eccosorb"}
                         ],
                     },
                 }
@@ -82,7 +82,7 @@ class TestValidateWiring:
                     "qubits": ["Q00", "Q01", "Q02", "Q03"],
                     "stages": {
                         "4K": [
-                            {"type": "amplifier", "model": "LNF", "amplifier_type": "HEMT", "gain_dB": 38}
+                            {"type": "amplifier", "manufacturer": "LNF", "model": "LNC4_8C", "amplifier_type": "HEMT", "gain_dB": 38}
                         ]
                     },
                 }
@@ -176,7 +176,8 @@ class TestValidateComponents:
         data = {
             "XMA-10dB": {
                 "type": "attenuator",
-                "model": "XMA-2002-6210-10",
+                "manufacturer": "XMA",
+                "model": "2002-6210-10",
                 "value_dB": 10,
             }
         }
@@ -186,7 +187,8 @@ class TestValidateComponents:
         data = {
             "Eccosorb": {
                 "type": "filter",
-                "model": "Eccosorb-CR110",
+                "manufacturer": "XMA",
+                "model": "CR110",
                 "filter_type": "Eccosorb",
             }
         }
@@ -196,7 +198,8 @@ class TestValidateComponents:
         data = {
             "ISO-1": {
                 "type": "isolator",
-                "model": "LNF-ISC4_12A",
+                "manufacturer": "LNF",
+                "model": "ISC4_12A",
                 "serial": "SN001",
             }
         }
@@ -206,7 +209,8 @@ class TestValidateComponents:
         data = {
             "HEMT-1": {
                 "type": "amplifier",
-                "model": "LNF-LNC4_8C",
+                "manufacturer": "LNF",
+                "model": "LNC4_8C",
                 "amplifier_type": "HEMT",
                 "gain_dB": 38,
             }
@@ -214,17 +218,22 @@ class TestValidateComponents:
         validate_components(data)
 
     def test_missing_type(self):
-        data = {"comp1": {"model": "ABC"}}
+        data = {"comp1": {"manufacturer": "XMA", "model": "ABC"}}
+        with pytest.raises(ValidationError):
+            validate_components(data)
+
+    def test_missing_manufacturer(self):
+        data = {"comp1": {"type": "attenuator", "model": "ABC"}}
         with pytest.raises(ValidationError):
             validate_components(data)
 
     def test_missing_model(self):
-        data = {"comp1": {"type": "attenuator"}}
+        data = {"comp1": {"type": "attenuator", "manufacturer": "XMA"}}
         with pytest.raises(ValidationError):
             validate_components(data)
 
     def test_invalid_type(self):
-        data = {"comp1": {"type": "cable", "model": "ABC"}}
+        data = {"comp1": {"type": "cable", "manufacturer": "XMA", "model": "ABC"}}
         with pytest.raises(ValidationError):
             validate_components(data)
 
@@ -232,7 +241,8 @@ class TestValidateComponents:
         data = {
             "comp1": {
                 "type": "attenuator",
-                "model": "XMA",
+                "manufacturer": "XMA",
+                "model": "ABC",
                 "unknown": "value",
             }
         }

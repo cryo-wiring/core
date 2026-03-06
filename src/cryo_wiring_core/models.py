@@ -26,6 +26,7 @@ STAGE_ORDER = [Stage.RT, Stage.K50, Stage.K4, Stage.STILL, Stage.CP, Stage.MXC]
 class _ComponentBase(BaseModel):
     """Common fields shared by all component types."""
 
+    manufacturer: str
     model: str
     serial: str = ""
 

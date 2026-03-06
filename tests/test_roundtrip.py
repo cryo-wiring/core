@@ -46,31 +46,37 @@ SAMPLE_CHIP = {
 SAMPLE_COMPONENTS = {
     "XMA-10dB": {
         "type": "attenuator",
-        "model": "XMA-2082-6431-10",
+        "manufacturer": "XMA",
+        "model": "2082-6431-10",
         "value_dB": 10,
     },
     "XMA-20dB": {
         "type": "attenuator",
-        "model": "XMA-2082-6431-20",
+        "manufacturer": "XMA",
+        "model": "2082-6431-20",
         "value_dB": 20,
     },
     "LPF-KL": {
         "type": "filter",
-        "model": "K&L-6L250-12000",
+        "manufacturer": "K&L",
+        "model": "6L250-12000",
         "filter_type": "Lowpass",
     },
     "Eccosorb": {
         "type": "filter",
-        "model": "XMA-EF-03",
+        "manufacturer": "XMA",
+        "model": "EF-03",
         "filter_type": "Eccosorb",
     },
     "ISO-LNF": {
         "type": "isolator",
-        "model": "LNF-ISC4_12A",
+        "manufacturer": "LNF",
+        "model": "ISC4_12A",
     },
     "HEMT-LNF": {
         "type": "amplifier",
-        "model": "LNF-LNC03_14A",
+        "manufacturer": "LNF",
+        "model": "LNC03_14A",
         "amplifier_type": "HEMT",
         "gain_dB": 40,
     },
@@ -83,14 +89,14 @@ SAMPLE_WIRING_FLAT = {
             "qubit": "Q00",
             "stages": {
                 "50K": [
-                    {"type": "attenuator", "model": "XMA-2082-6431-10", "value_dB": 10}
+                    {"type": "attenuator", "manufacturer": "XMA", "model": "2082-6431-10", "value_dB": 10}
                 ],
                 "4K": [
-                    {"type": "attenuator", "model": "XMA-2082-6431-20", "value_dB": 20}
+                    {"type": "attenuator", "manufacturer": "XMA", "model": "2082-6431-20", "value_dB": 20}
                 ],
                 "MXC": [
-                    {"type": "attenuator", "model": "XMA-2082-6431-20", "value_dB": 20},
-                    {"type": "filter", "model": "XMA-EF-03", "filter_type": "Eccosorb"},
+                    {"type": "attenuator", "manufacturer": "XMA", "model": "2082-6431-20", "value_dB": 20},
+                    {"type": "filter", "manufacturer": "XMA", "model": "EF-03", "filter_type": "Eccosorb"},
                 ],
             },
         },
@@ -99,7 +105,7 @@ SAMPLE_WIRING_FLAT = {
             "qubits": ["Q00", "Q01", "Q02", "Q03"],
             "stages": {
                 "50K": [
-                    {"type": "attenuator", "model": "XMA-2082-6431-10", "value_dB": 10}
+                    {"type": "attenuator", "manufacturer": "XMA", "model": "2082-6431-10", "value_dB": 10}
                 ],
             },
         },
@@ -108,10 +114,10 @@ SAMPLE_WIRING_FLAT = {
             "qubits": ["Q00", "Q01", "Q02", "Q03"],
             "stages": {
                 "CP": [
-                    {"type": "isolator", "model": "LNF-ISC4_12A"},
+                    {"type": "isolator", "manufacturer": "LNF", "model": "ISC4_12A"},
                 ],
                 "50K": [
-                    {"type": "amplifier", "model": "LNF-LNC03_14A", "amplifier_type": "HEMT", "gain_dB": 40},
+                    {"type": "amplifier", "manufacturer": "LNF", "model": "LNC03_14A", "amplifier_type": "HEMT", "gain_dB": 40},
                 ],
             },
         },

@@ -81,13 +81,13 @@ def _():
 
     # Component catalog
     catalog = {
-        "XMA-10dB": Attenuator(model="XMA-2082-6431-10", value_dB=10),
-        "XMA-20dB": Attenuator(model="XMA-2082-6431-20", value_dB=20),
-        "Eccosorb": Filter(model="XMA-EF-03", filter_type="Eccosorb"),
-        "K&L-LPF": Filter(model="K&L-5VLF", filter_type="Lowpass"),
-        "RT-AMP": Amplifier(model="MITEQ-AFS3", amplifier_type="RT", gain_dB=20),
-        "LNF-HEMT": Amplifier(model="LNF-LNC03_14A", amplifier_type="HEMT", gain_dB=40),
-        "LNF-ISO": Isolator(model="LNF-ISC4_12A"),
+        "XMA-10dB": Attenuator(manufacturer="XMA", model="2082-6431-10", value_dB=10),
+        "XMA-20dB": Attenuator(manufacturer="XMA", model="2082-6431-20", value_dB=20),
+        "Eccosorb": Filter(manufacturer="XMA", model="EF-03", filter_type="Eccosorb"),
+        "K&L-LPF": Filter(manufacturer="K&L", model="5VLF", filter_type="Lowpass"),
+        "RT-AMP": Amplifier(manufacturer="MITEQ", model="AFS3", amplifier_type="RT", gain_dB=20),
+        "LNF-HEMT": Amplifier(manufacturer="LNF", model="LNC03_14A", amplifier_type="HEMT", gain_dB=40),
+        "LNF-ISO": Isolator(manufacturer="LNF", model="ISC4_12A"),
     }
 
     # Build cooldown

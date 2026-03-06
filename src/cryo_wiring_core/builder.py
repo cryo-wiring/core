@@ -18,10 +18,10 @@ Two usage patterns:
     from cryo_wiring_core import *
 
     catalog = {
-        "XMA-10dB": Attenuator(model="XMA-10dB", value_dB=10),
-        "XMA-20dB": Attenuator(model="XMA-20dB", value_dB=20),
-        "LNF-ISO":  Isolator(model="LNF-ISC4_12A"),
-        "LNF-HEMT": Amplifier(model="LNF-HEMT", amplifier_type="HEMT", gain_dB=40),
+        "XMA-10dB": Attenuator(manufacturer="XMA", model="2082-6431-10", value_dB=10),
+        "XMA-20dB": Attenuator(manufacturer="XMA", model="2082-6431-20", value_dB=20),
+        "LNF-ISO":  Isolator(manufacturer="LNF", model="ISC4_12A"),
+        "LNF-HEMT": Amplifier(manufacturer="LNF", model="LNC03_14A", amplifier_type="HEMT", gain_dB=40),
     }
 
     cooldown = (
