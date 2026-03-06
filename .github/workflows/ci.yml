@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Check schemas in sync with spec submodule
+        run: make check-schemas
+
+      - name: Run tests
+        run: make test
