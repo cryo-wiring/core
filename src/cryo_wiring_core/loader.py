@@ -3,11 +3,22 @@
 from __future__ import annotations
 
 import copy
+import importlib.resources
 from pathlib import Path
 
 import yaml
 
 from cryo_wiring_core.models import ChipConfig, CooldownMetadata, WiringConfig
+
+
+def templates_dir() -> Path:
+    """Return the path to the bundled templates directory."""
+    return Path(str(importlib.resources.files("cryo_wiring_core") / "templates"))
+
+
+def default_components_path() -> Path:
+    """Return the path to the bundled components.yaml."""
+    return templates_dir() / "components.yaml"
 
 
 def load_yaml(path: Path) -> dict:
