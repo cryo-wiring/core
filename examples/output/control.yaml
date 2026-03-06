@@ -1,0 +1,39 @@
+modules:
+  ctrl:
+    stages:
+      50K:
+      - model: XMA-2082-6431-10
+        value_dB: 10.0
+      4K:
+      - model: XMA-2082-6431-20
+        value_dB: 20.0
+      MXC:
+      - model: XMA-2082-6431-20
+        value_dB: 20.0
+      - model: XMA-EF-03
+        filter_type: Eccosorb
+lines:
+- line_id: C00
+  qubit: Q00
+  module: ctrl
+- line_id: C01
+  qubit: Q01
+  module: ctrl
+- line_id: C02
+  qubit: Q02
+  module: ctrl
+- line_id: C03
+  qubit: Q03
+  module: ctrl
+- line_id: C04
+  qubit: Q04
+  module: ctrl
+- line_id: C05
+  qubit: Q05
+  module: ctrl
+- line_id: C06
+  qubit: Q06
+  module: ctrl
+- line_id: C07
+  qubit: Q07
+  module: ctrl
