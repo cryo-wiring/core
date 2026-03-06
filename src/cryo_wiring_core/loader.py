@@ -131,7 +131,7 @@ def load_cooldown(
     (output) is returned as an empty config.
     """
     d = Path(cooldown_dir)
-    catalog = load_components(components_path) if components_path else {}
+    catalog = load_components(components_path or default_components_path())
 
     metadata = CooldownMetadata.model_validate(load_yaml(d / "metadata.yaml"))
     control = WiringConfig.from_raw(expand_modules(load_yaml(d / "control.yaml"), catalog))
