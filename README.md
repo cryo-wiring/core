@@ -151,7 +151,7 @@ uv run marimo edit examples/getting_started.py
 
 The notebook covers builder usage, summary tables, SVG diagram rendering, and component add/remove/replace operations.
 
-Try it online in the [Playground](https://cryo-wiring.github.io/core/playground/) — no installation required.
+Try it online in the [Playground](https://cryo-wiring.github.io/core/marimo/) — no installation required.
 
 ## Development
 

@@ -21,7 +21,7 @@ pip install cryo-wiring-core
 
 ## Try it online
 
-The [Playground](playground.md) lets you run the getting-started notebook directly in your browser — no installation required.
+The [Playground](../marimo/) lets you run the getting-started notebook directly in your browser — no installation required.
 
 ## Related Repositories
 

@@ -20,12 +20,16 @@ def _():
     if "pyodide" in _sys.modules:
         import micropip as _micropip
 
+        # Pyodide has jsonschema, matplotlib, pyyaml built-in.
+        # Install remaining pure-Python deps, then the wheel without dep resolution.
+        await _micropip.install(["pydantic", "rich"])
         _WHEEL = "cryo_wiring_core-0.1.0-py3-none-any.whl"
         try:
-            await _micropip.install(f"./files/{_WHEEL}")
+            await _micropip.install(f"./files/{_WHEEL}", deps=False)
         except Exception:
             await _micropip.install(
-                f"https://cryo-wiring.github.io/core/marimo/files/{_WHEEL}"
+                f"https://cryo-wiring.github.io/core/marimo/files/{_WHEEL}",
+                deps=False,
             )
 
     return (mo,)
