@@ -2,11 +2,9 @@ modules:
   rs:
     stages:
       50K:
-      - model: XMA-2082-6431-10
-        value_dB: 10.0
+      - XMA-10dB
       4K:
-      - model: XMA-2082-6431-10
-        value_dB: 10.0
+      - XMA-10dB
 lines:
 - line_id: RS00
   qubits:

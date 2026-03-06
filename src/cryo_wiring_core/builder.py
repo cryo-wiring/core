@@ -96,7 +96,10 @@ def _dump_yaml(data: dict) -> str:
 
 def _component_to_dict(comp: Attenuator | Filter | Isolator | Amplifier) -> dict:
     """Serialize a component model to a plain dict for YAML output."""
-    return comp.model_dump(exclude_defaults=True)
+    d = comp.model_dump(exclude_defaults=True)
+    d["type"] = comp.type
+    # Ensure 'type' appears first for readability
+    return {"type": d.pop("type"), **d}
 
 
 def _stages_to_dict(
@@ -342,7 +345,8 @@ class _LineScope:
 
 # -- Model-based builder --
 
-ComponentList = list[Union[Attenuator, Filter, Isolator, Amplifier]]
+ComponentRef = Union[Attenuator, Filter, Isolator, Amplifier, str]
+ComponentList = list[ComponentRef]
 
 
 class CooldownBuilder:
@@ -367,6 +371,7 @@ class CooldownBuilder:
     ) -> None:
         self.num_qubits = num_qubits
         self.qubits_per_readout_line = qubits_per_readout_line
+        self._catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] = {}
         self._ctrl: tuple[str, dict[Stage, ComponentList]] | None = None
         self._rs: tuple[str, dict[Stage, ComponentList]] | None = None
         self._rr: tuple[str, dict[Stage, ComponentList]] | None = None
@@ -377,6 +382,19 @@ class CooldownBuilder:
         self._cooldown_date: str = ""
         self._operator: str = ""
         self._purpose: str = ""
+
+    def component(
+        self,
+        key: str,
+        comp: Attenuator | Filter | Isolator | Amplifier,
+    ) -> CooldownBuilder:
+        """Register a component in the catalog.
+
+        Registered components can be referenced by *key* in module stage
+        definitions and will be output as string references in YAML.
+        """
+        self._catalog[key] = comp
+        return self
 
     def metadata(
         self,
@@ -513,6 +531,18 @@ class CooldownBuilder:
                 if 0 <= idx < len(comps):
                     comps[idx] = comp
 
+    def _resolve_ref(self, ref: ComponentRef) -> Attenuator | Filter | Isolator | Amplifier:
+        """Resolve a component reference (key string or object) to a component."""
+        if isinstance(ref, str):
+            if ref not in self._catalog:
+                raise ValueError(f"Unknown component key: {ref!r}. Register it with .component() first.")
+            return self._catalog[ref]
+        return ref
+
+    def _resolve_stages(self, stages: dict[Stage, ComponentList]) -> dict[Stage, list[Attenuator | Filter | Isolator | Amplifier]]:
+        """Resolve all component refs in a stage dict to concrete objects."""
+        return {stage: [self._resolve_ref(c) for c in comps] for stage, comps in stages.items()}
+
     def _build_wiring_config(
         self,
         module_name: str,
@@ -520,10 +550,11 @@ class CooldownBuilder:
         lines_dicts: list[dict],
     ) -> WiringConfig:
         """Build a WiringConfig from a module definition and line dicts."""
+        resolved = self._resolve_stages(stages)
         parsed_lines: list[ControlLine | ReadoutLine] = []
         for line_dict in lines_dicts:
             line_id = line_dict["line_id"]
-            line_stages = copy.deepcopy(stages)
+            line_stages = copy.deepcopy(resolved)
             if line_id.startswith("C"):
                 parsed_lines.append(ControlLine(
                     line_id=line_id,
@@ -589,6 +620,83 @@ class CooldownBuilder:
 
         return Cooldown(control, readout_send, readout_return, builder=self, metadata=meta)
 
+    def _component_ref_to_yaml(self, ref: ComponentRef) -> str | dict:
+        """Serialize a component ref to YAML: string key or inline dict."""
+        if isinstance(ref, str):
+            return ref
+        return _component_to_dict(ref)
+
+    def _stages_to_yaml_dict(self, stages: dict[Stage, ComponentList]) -> dict[str, list[str | dict]]:
+        """Convert Stage-keyed component list to YAML-friendly dict, preserving key refs."""
+        result: dict[str, list[str | dict]] = {}
+        for stage, components in stages.items():
+            result[stage.value] = [self._component_ref_to_yaml(c) for c in components]
+        return result
+
+    def _overrides_for_line(self, line_id: str, module_stages: dict[Stage, ComponentList]) -> dict[str, dict] | None:
+        """Build spec-format stage overrides dict for a single line.
+
+        Returns ``None`` if the line has no overrides.
+        """
+        # Collect per-stage add/remove lists
+        stage_adds: dict[Stage, list] = {}
+        stage_removes: dict[Stage, list] = {}
+
+        for op in self._overrides:
+            if op[1] != line_id:
+                continue
+            if op[0] == "add":
+                _, _, stage, comp = op
+                stage_adds.setdefault(stage, []).append(comp)
+            elif op[0] == "remove":
+                _, _, stage, comp_type, idx = op
+                mod_comps = module_stages.get(stage, [])
+                if idx is not None and 0 <= idx < len(mod_comps):
+                    target = mod_comps[idx]
+                    resolved = self._resolve_ref(target) if isinstance(target, str) else target
+                    stage_removes.setdefault(stage, []).append({"model": resolved.model})
+                elif comp_type is not None:
+                    for ref in mod_comps:
+                        resolved = self._resolve_ref(ref) if isinstance(ref, str) else ref
+                        if resolved.type == comp_type:
+                            stage_removes.setdefault(stage, []).append({"model": resolved.model})
+                            break
+            elif op[0] == "replace":
+                _, _, stage, idx, new_comp = op
+                mod_comps = module_stages.get(stage, [])
+                if 0 <= idx < len(mod_comps):
+                    target = mod_comps[idx]
+                    resolved = self._resolve_ref(target) if isinstance(target, str) else target
+                    stage_removes.setdefault(stage, []).append({"model": resolved.model})
+                    stage_adds.setdefault(stage, []).append(new_comp)
+
+        if not stage_adds and not stage_removes:
+            return None
+
+        result: dict[str, dict] = {}
+        all_stages = set(stage_adds) | set(stage_removes)
+        for stage in all_stages:
+            override: dict[str, list] = {}
+            if stage in stage_removes:
+                override["remove"] = stage_removes[stage]
+            if stage in stage_adds:
+                override["add"] = [
+                    self._component_ref_to_yaml(c) for c in stage_adds[stage]
+                ]
+            result[stage.value] = override
+        return result
+
+    def _apply_overrides_to_lines(self, lines_dicts: list[dict], module_stages: dict[Stage, ComponentList]) -> list[dict]:
+        """Inject spec-format stage overrides into line dicts."""
+        result = []
+        for line_dict in lines_dicts:
+            d = dict(line_dict)
+            overrides = self._overrides_for_line(d["line_id"], module_stages)
+            if overrides:
+                d["stages"] = overrides
+            result.append(d)
+        return result
+
     def _module_to_yaml_dict(
         self,
         name: str,
@@ -596,8 +704,9 @@ class CooldownBuilder:
         lines_dicts: list[dict],
     ) -> dict:
         """Serialize a module + lines to a YAML-ready dict."""
-        module_def = {"stages": _stages_to_dict(stages)}
-        return make_wiring_yaml(module_def, name, lines_dicts)
+        module_def = {"stages": self._stages_to_yaml_dict(stages)}
+        lines_with_overrides = self._apply_overrides_to_lines(lines_dicts, stages)
+        return make_wiring_yaml(module_def, name, lines_with_overrides)
 
     def write(
         self,
@@ -636,6 +745,14 @@ class CooldownBuilder:
         (output / "chip.yaml").write_text(
             _dump_yaml(chip.model_dump())
         )
+
+        # components.yaml (if catalog is non-empty)
+        if self._catalog:
+            catalog_data = {
+                key: _component_to_dict(comp)
+                for key, comp in self._catalog.items()
+            }
+            (output / "components.yaml").write_text(_dump_yaml(catalog_data))
 
         # control.yaml
         ctrl_name, ctrl_stages = self._ctrl

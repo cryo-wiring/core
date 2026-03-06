@@ -2,16 +2,12 @@ modules:
   rr:
     stages:
       RT:
-      - model: MITEQ-AFS3
-        amplifier_type: RT
-        gain_dB: 20.0
+      - RT-AMP
       50K:
-      - model: LNF-LNC03_14A
-        amplifier_type: HEMT
-        gain_dB: 40.0
+      - LNF-HEMT
       CP:
-      - model: LNF-ISC4_12A
-      - model: LNF-ISC4_12A
+      - LNF-ISO
+      - LNF-ISO
 lines:
 - line_id: RR00
   qubits:
@@ -20,6 +16,10 @@ lines:
   - Q02
   - Q03
   module: rr
+  stages:
+    CP:
+      remove:
+      - model: LNF-ISC4_12A
 - line_id: RR01
   qubits:
   - Q04

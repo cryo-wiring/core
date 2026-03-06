@@ -2,20 +2,22 @@ modules:
   ctrl:
     stages:
       50K:
-      - model: XMA-2082-6431-10
-        value_dB: 10.0
+      - XMA-10dB
       4K:
-      - model: XMA-2082-6431-20
-        value_dB: 20.0
+      - XMA-20dB
       MXC:
-      - model: XMA-2082-6431-20
-        value_dB: 20.0
-      - model: XMA-EF-03
-        filter_type: Eccosorb
+      - XMA-20dB
+      - Eccosorb
 lines:
 - line_id: C00
   qubit: Q00
   module: ctrl
+  stages:
+    Still:
+      add:
+      - type: filter
+        model: K&L-5VLF
+        filter_type: Lowpass
 - line_id: C01
   qubit: Q01
   module: ctrl
@@ -25,12 +27,34 @@ lines:
 - line_id: C03
   qubit: Q03
   module: ctrl
+  stages:
+    4K:
+      remove:
+      - model: XMA-2082-6431-20
+      add:
+      - type: attenuator
+        model: XMA-2082-6431-10
+        value_dB: 10.0
+    MXC:
+      remove:
+      - model: XMA-EF-03
 - line_id: C04
   qubit: Q04
   module: ctrl
 - line_id: C05
   qubit: Q05
   module: ctrl
+  stages:
+    4K:
+      remove:
+      - model: XMA-2082-6431-20
+      add:
+      - type: attenuator
+        model: XMA-2082-6431-10
+        value_dB: 10.0
+    MXC:
+      remove:
+      - model: XMA-EF-03
 - line_id: C06
   qubit: Q06
   module: ctrl
