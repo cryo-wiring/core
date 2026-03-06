@@ -43,6 +43,7 @@ cooldown = (
     .component("XMA-10dB", Attenuator(model="XMA-2082-6431-10", value_dB=10))
     .component("XMA-20dB", Attenuator(model="XMA-2082-6431-20", value_dB=20))
     .component("Eccosorb", Filter(model="XMA-EF-03", filter_type="Eccosorb"))
+    .component("K&L-LPF", Filter(model="K&L-5VLF", filter_type="Lowpass"))
     .component("RT-AMP", Amplifier(model="MITEQ-AFS3", amplifier_type="RT", gain_dB=20))
     .component("LNF-HEMT", Amplifier(model="LNF-LNC03_14A", amplifier_type="HEMT", gain_dB=40))
     .component("LNF-ISO", Isolator(model="LNF-ISC4_12A"))
@@ -61,11 +62,11 @@ cooldown = (
         Stage.K50: ["LNF-HEMT"],
         Stage.CP: ["LNF-ISO", "LNF-ISO"],
     })
-    # Per-line overrides
-    .add("C00", Stage.STILL, Filter(model="K&L-5VLF", filter_type="Lowpass"))
+    # Per-line overrides (also using catalog keys)
+    .add("C00", Stage.STILL, "K&L-LPF")
     .for_lines("C03", "C05")
         .remove(Stage.MXC, component_type="filter")
-        .replace(Stage.K4, 0, Attenuator(model="XMA-2082-6431-10", value_dB=10))
+        .replace(Stage.K4, 0, "XMA-10dB")
     .end()
     .build()
 )

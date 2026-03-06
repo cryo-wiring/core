@@ -308,7 +308,7 @@ class _LineScope:
     def add(
         self,
         stage: Stage,
-        component: Attenuator | Filter | Isolator | Amplifier,
+        component: ComponentRef,
     ) -> _LineScope:
         """Add a component at *stage* on all scoped lines."""
         for lid in self._line_ids:
@@ -331,7 +331,7 @@ class _LineScope:
         self,
         stage: Stage,
         index: int,
-        component: Attenuator | Filter | Isolator | Amplifier,
+        component: ComponentRef,
     ) -> _LineScope:
         """Replace a component at *stage*/*index* on all scoped lines."""
         for lid in self._line_ids:
@@ -458,14 +458,14 @@ class CooldownBuilder:
         self,
         line_ids: LineIds,
         stage: Stage,
-        component: Attenuator | Filter | Isolator | Amplifier,
+        component: ComponentRef,
     ) -> CooldownBuilder:
         """Add a component to line(s) at a given stage.
 
-        ``line_ids`` can be a single string or a list of strings::
+        *component* can be a component object or a catalog key string::
 
-            b.add("C00", Stage.STILL, Filter(...))
-            b.add(["C00", "C03", "C05"], Stage.STILL, Filter(...))
+            b.add("C00", Stage.STILL, "K&L-LPF")
+            b.add("C00", Stage.STILL, Filter(model="K&L-5VLF", filter_type="Lowpass"))
         """
         for lid in _normalize_line_ids(line_ids):
             self._overrides.append(("add", lid, stage, component))
@@ -492,11 +492,11 @@ class CooldownBuilder:
         line_ids: LineIds,
         stage: Stage,
         index: int,
-        component: Attenuator | Filter | Isolator | Amplifier,
+        component: ComponentRef,
     ) -> CooldownBuilder:
         """Replace a component at a specific position on line(s).
 
-        ``line_ids`` can be a single string or a list of strings.
+        *component* can be a component object or a catalog key string.
         """
         for lid in _normalize_line_ids(line_ids):
             self._overrides.append(("replace", lid, stage, index, component))
@@ -511,7 +511,7 @@ class CooldownBuilder:
                 continue
             stage: Stage = op[2]
             if op[0] == "add":
-                line.stages.setdefault(stage, []).append(op[3])
+                line.stages.setdefault(stage, []).append(self._resolve_ref(op[3]))
             elif op[0] == "remove":
                 comp_type, idx = op[3], op[4]
                 comps = line.stages.get(stage, [])
@@ -529,7 +529,7 @@ class CooldownBuilder:
                 idx, comp = op[3], op[4]
                 comps = line.stages.get(stage, [])
                 if 0 <= idx < len(comps):
-                    comps[idx] = comp
+                    comps[idx] = self._resolve_ref(comp)
 
     def _resolve_ref(self, ref: ComponentRef) -> Attenuator | Filter | Isolator | Amplifier:
         """Resolve a component reference (key string or object) to a component."""
@@ -653,21 +653,29 @@ class CooldownBuilder:
                 mod_comps = module_stages.get(stage, [])
                 if idx is not None and 0 <= idx < len(mod_comps):
                     target = mod_comps[idx]
-                    resolved = self._resolve_ref(target) if isinstance(target, str) else target
-                    stage_removes.setdefault(stage, []).append({"model": resolved.model})
+                    # Use key string if catalog ref, else {"model": ...}
+                    if isinstance(target, str):
+                        stage_removes.setdefault(stage, []).append(target)
+                    else:
+                        stage_removes.setdefault(stage, []).append({"model": target.model})
                 elif comp_type is not None:
                     for ref in mod_comps:
                         resolved = self._resolve_ref(ref) if isinstance(ref, str) else ref
                         if resolved.type == comp_type:
-                            stage_removes.setdefault(stage, []).append({"model": resolved.model})
+                            if isinstance(ref, str):
+                                stage_removes.setdefault(stage, []).append(ref)
+                            else:
+                                stage_removes.setdefault(stage, []).append({"model": resolved.model})
                             break
             elif op[0] == "replace":
                 _, _, stage, idx, new_comp = op
                 mod_comps = module_stages.get(stage, [])
                 if 0 <= idx < len(mod_comps):
                     target = mod_comps[idx]
-                    resolved = self._resolve_ref(target) if isinstance(target, str) else target
-                    stage_removes.setdefault(stage, []).append({"model": resolved.model})
+                    if isinstance(target, str):
+                        stage_removes.setdefault(stage, []).append(target)
+                    else:
+                        stage_removes.setdefault(stage, []).append({"model": target.model})
                     stage_adds.setdefault(stage, []).append(new_comp)
 
         if not stage_adds and not stage_removes:

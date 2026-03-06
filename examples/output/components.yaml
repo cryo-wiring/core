@@ -10,6 +10,10 @@ Eccosorb:
   type: filter
   model: XMA-EF-03
   filter_type: Eccosorb
+K&L-LPF:
+  type: filter
+  model: K&L-5VLF
+  filter_type: Lowpass
 RT-AMP:
   type: amplifier
   model: MITEQ-AFS3

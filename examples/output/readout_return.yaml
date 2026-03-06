@@ -19,7 +19,7 @@ lines:
   stages:
     CP:
       remove:
-      - model: LNF-ISC4_12A
+      - LNF-ISO
 - line_id: RR01
   qubits:
   - Q04
