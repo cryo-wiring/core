@@ -20,9 +20,9 @@ def _():
     if "pyodide" in _sys.modules:
         import micropip as _micropip
 
-        # Pyodide has jsonschema, matplotlib, pyyaml built-in.
-        # Install remaining pure-Python deps, then the wheel without dep resolution.
-        await _micropip.install(["jsonschema", "pydantic", "rich"])
+        await _micropip.install(
+            ["jsonschema", "matplotlib", "pydantic", "pyyaml", "rich"]
+        )
         _WHEEL = "cryo_wiring_core-0.1.0-py3-none-any.whl"
         try:
             await _micropip.install(f"./files/{_WHEEL}", deps=False)
@@ -143,10 +143,10 @@ def _(mo):
 
 @app.cell
 def _(cooldown, mo):
-    import tempfile
+    import tempfile as _tempfile
     from pathlib import Path as _Path
 
-    _tmpfile = tempfile.NamedTemporaryFile(suffix=".svg", delete=False)
+    _tmpfile = _tempfile.NamedTemporaryFile(suffix=".svg", delete=False)
     cooldown.diagram(output=_tmpfile.name, representative=True)
     _svg_content = _Path(_tmpfile.name).read_text()
     mo.Html(_svg_content)
@@ -165,10 +165,10 @@ def _(mo):
 
 @app.cell
 def _(cooldown, mo):
-    import tempfile
+    import tempfile as _tempfile
     from pathlib import Path as _Path
 
-    _output_dir = _Path(tempfile.mkdtemp()) / "export"
+    _output_dir = _Path(_tempfile.mkdtemp()) / "export"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
     # Markdown summary
@@ -199,10 +199,10 @@ def _(mo):
 
 @app.cell
 def _(cooldown, mo):
-    import tempfile
+    import tempfile as _tempfile
     from pathlib import Path as _Path
 
-    _output_dir = _Path(tempfile.mkdtemp()) / "output"
+    _output_dir = _Path(_tempfile.mkdtemp()) / "output"
     _result = cooldown.write(_output_dir, fridge="anemone", chip_name="sample-8q")
     _files = sorted(f.name for f in _result.iterdir() if f.suffix == ".yaml")
     mo.md(f"Wrote to `{_result}`:\n\n" + "\n".join(f"- `{f}`" for f in _files))
