@@ -125,11 +125,10 @@ validate_metadata(meta)
 
 | Class             | Fields                              | Diagram Label    | Example                                              |
 | ----------------- | ----------------------------------- | ---------------- | ---------------------------------------------------- |
-| `Attenuator`      | `value_dB`                          | `10 dB`          | `Attenuator(model="XMA-10dB", value_dB=10)`          |
-| `Filter`          | `filter_type`                       | `Lowpa` / `FLT`  | `Filter(model="K&L", filter_type="Lowpass")`          |
-| `Isolator`        | —                                   | `ISO`            | `Isolator(model="LNF-ISC4_12A")`                     |
-| `Amplifier`       | `amplifier_type`, `gain_dB`         | `+40 dB`         | `Amplifier(model="HEMT", gain_dB=40)`                |
-| `CustomComponent` | `custom_type`                       | user-defined     | `CustomComponent(model="BLK-18", custom_type="DC block")` |
+| `Attenuator` | `value_dB`                  | `10 dB`         | `Attenuator(model="XMA-10dB", value_dB=10)` |
+| `Filter`     | `filter_type`               | `Lowpass` / `FLT` | `Filter(model="K&L", filter_type="Lowpass")` |
+| `Isolator`   | —                           | `ISO`           | `Isolator(model="LNF-ISC4_12A")`            |
+| `Amplifier`  | `amplifier_type`, `gain_dB` | `+40 dB`        | `Amplifier(model="HEMT", gain_dB=40)`        |
 
 All components share `model` and `serial` fields, and expose `label`, `summary_label`, `attenuation`, `gain` properties.
 
