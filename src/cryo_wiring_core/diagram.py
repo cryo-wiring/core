@@ -2,10 +2,6 @@
 
 Generates a block-diagram style figure suitable for single-column
 academic papers (Nature / PRL).  Default width is 86 mm (3.375 in).
-
-Requires the ``diagram`` extra::
-
-    pip install cryo-wiring-core[diagram]
 """
 
 from __future__ import annotations

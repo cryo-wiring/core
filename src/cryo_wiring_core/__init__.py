@@ -24,8 +24,11 @@ from cryo_wiring_core.models import (
     WiringConfig,
 )
 from cryo_wiring_core.summary import (
+    generate_html_table,
+    generate_markdown_table,
     grouped_summaries,
     line_summary,
+    print_summary,
 )
 from cryo_wiring_core.validate import (
     validate_chip,
@@ -34,10 +37,7 @@ from cryo_wiring_core.validate import (
     validate_wiring,
 )
 
-try:
-    from cryo_wiring_core.diagram import generate_diagram
-except ImportError:
-    pass
+from cryo_wiring_core.diagram import generate_diagram
 
 __all__ = [
     "Amplifier",
@@ -52,8 +52,11 @@ __all__ = [
     "Stage",
     "STAGE_ORDER",
     "WiringConfig",
+    "generate_html_table",
+    "generate_markdown_table",
     "grouped_summaries",
     "line_summary",
+    "print_summary",
     "default_components_path",
     "expand_modules",
     "load_chip",
