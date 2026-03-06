@@ -22,7 +22,7 @@ def _():
 
         # Pyodide has jsonschema, matplotlib, pyyaml built-in.
         # Install remaining pure-Python deps, then the wheel without dep resolution.
-        await _micropip.install(["pydantic", "rich"])
+        await _micropip.install(["jsonschema", "pydantic", "rich"])
         _WHEEL = "cryo_wiring_core-0.1.0-py3-none-any.whl"
         try:
             await _micropip.install(f"./files/{_WHEEL}", deps=False)
