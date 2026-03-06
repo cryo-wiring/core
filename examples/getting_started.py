@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#     "cryo-wiring-core",
+#     "cryo-wiring-core @ git+https://github.com/cryo-wiring/core.git",
 #     "marimo",
 # ]
 # ///
@@ -9,6 +9,26 @@ import marimo
 
 __generated_with = "0.20.4"
 app = marimo.App(width="medium")
+
+
+@app.cell
+def _():
+    import marimo as mo
+    import sys as _sys
+
+    # In Pyodide (WASM), install from the wheel bundled alongside this notebook
+    if "pyodide" in _sys.modules:
+        import micropip as _micropip
+
+        _WHEEL = "cryo_wiring_core-0.1.0-py3-none-any.whl"
+        try:
+            await _micropip.install(f"./files/{_WHEEL}")
+        except Exception:
+            await _micropip.install(
+                f"https://cryo-wiring.github.io/core/marimo/files/{_WHEEL}"
+            )
+
+    return (mo,)
 
 
 @app.cell(hide_code=True)
@@ -25,13 +45,6 @@ def _(mo):
     5. **Export** - Save summary (Markdown) and diagram (SVG) to files
     """)
     return
-
-
-@app.cell
-def _():
-    import marimo as mo
-
-    return (mo,)
 
 
 @app.cell(hide_code=True)
@@ -148,9 +161,10 @@ def _(mo):
 
 @app.cell
 def _(cooldown, mo):
+    import tempfile
     from pathlib import Path as _Path
 
-    _output_dir = _Path(__file__).parent / "output"
+    _output_dir = _Path(tempfile.mkdtemp()) / "export"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
     # Markdown summary
@@ -181,9 +195,10 @@ def _(mo):
 
 @app.cell
 def _(cooldown, mo):
+    import tempfile
     from pathlib import Path as _Path
 
-    _output_dir = _Path(__file__).parent / "output"
+    _output_dir = _Path(tempfile.mkdtemp()) / "output"
     _result = cooldown.write(_output_dir, fridge="anemone", chip_name="sample-8q")
     _files = sorted(f.name for f in _result.iterdir() if f.suffix == ".yaml")
     mo.md(f"Wrote to `{_result}`:\n\n" + "\n".join(f"- `{f}`" for f in _files))
