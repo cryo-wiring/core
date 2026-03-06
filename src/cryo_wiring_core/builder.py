@@ -218,6 +218,7 @@ class Cooldown:
         self,
         line_type: str = "all",
         fmt: str = "terminal",
+        diagram: str | None = None,
     ) -> str | None:
         """Print or return a wiring summary.
 
@@ -225,6 +226,8 @@ class Cooldown:
         ----------
         fmt
             ``"terminal"`` (print via Rich), ``"markdown"``, or ``"html"``.
+        diagram
+            Relative path to a diagram image to embed (markdown only).
         """
         from cryo_wiring_core.summary import (
             generate_html_table,
@@ -236,7 +239,7 @@ class Cooldown:
             print_summary(self.control, self.readout_send, self.readout_return, line_type=line_type, metadata=self.metadata)
             return None
         if fmt == "markdown":
-            return generate_markdown_table(self.control, self.readout_send, self.readout_return, line_type=line_type, metadata=self.metadata)
+            return generate_markdown_table(self.control, self.readout_send, self.readout_return, line_type=line_type, metadata=self.metadata, diagram=diagram)
         if fmt == "html":
             return generate_html_table(self.control, self.readout_send, self.readout_return, line_type=line_type, metadata=self.metadata)
         raise ValueError(f"Unknown format: {fmt!r}. Use 'terminal', 'markdown', or 'html'.")

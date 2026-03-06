@@ -6,6 +6,10 @@
 | Date | 2026-03-06 |
 | Fridge | your-cryo |
 
+## Wiring Diagram
+
+![Wiring Diagram](wiring.svg)
+
 ### Control
 
 | Line ID | Qubit(s) | Atten (dB) | Gain (dB) | RT | 50K | 4K | Still | CP | MXC |

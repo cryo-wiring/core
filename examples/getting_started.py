@@ -176,12 +176,12 @@ def _(cooldown, mo):
     _output_dir = _Path(_tempfile.mkdtemp()) / "export"
     _output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Markdown summary
-    _md_content = cooldown.summary(fmt="markdown")
-    (_output_dir / "README.md").write_text(_md_content)
-
     # SVG diagram
     cooldown.diagram(output=_output_dir / "wiring.svg", representative=True)
+
+    # Markdown summary with diagram embedded
+    _md_content = cooldown.summary(fmt="markdown", diagram="wiring.svg")
+    (_output_dir / "README.md").write_text(_md_content)
 
     mo.md(
         f"Exported to `{_output_dir}`:\n\n"

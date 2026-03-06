@@ -114,8 +114,16 @@ def generate_markdown_table(
     readout_return: WiringConfig,
     line_type: str = "all",
     metadata: CooldownMetadata | None = None,
+    diagram: str | None = None,
 ) -> str:
-    """Generate a Markdown summary with separate tables per section."""
+    """Generate a Markdown summary with separate tables per section.
+
+    Parameters
+    ----------
+    diagram
+        Relative path to a diagram image (e.g. ``"wiring.svg"``).
+        If provided, an ``![Wiring Diagram]`` reference is added.
+    """
     groups = grouped_summaries(control, readout_send, readout_return, line_type)
 
     stage_headers = " | ".join(s.value for s in STAGE_ORDER)
@@ -124,6 +132,13 @@ def generate_markdown_table(
     table_sep = "|" + "|".join(["---"] * n_cols) + "|"
 
     parts: list[str] = _metadata_markdown(metadata)
+
+    if diagram is not None:
+        parts.append("## Wiring Diagram")
+        parts.append("")
+        parts.append(f"![Wiring Diagram]({diagram})")
+        parts.append("")
+
     for label, summaries in groups:
         parts.append(f"### {label}")
         parts.append("")
