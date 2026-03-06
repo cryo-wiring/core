@@ -51,6 +51,7 @@ def _(mo):
     3. **Summary** - View wiring summaries as tables
     4. **Diagram** - Generate publication-quality wiring diagrams
     5. **Export** - Save summary (Markdown) and diagram (SVG) to files
+    6. **Bundle** - Export a single-file YAML bundle for viewers and sharing
     """)
     return
 
@@ -211,6 +212,41 @@ def _(cooldown, mo):
     _result = cooldown.write(_output_dir)
     _files = sorted(f.name for f in _result.iterdir() if f.suffix == ".yaml")
     mo.md(f"Wrote to `{_result}`:\n\n" + "\n".join(f"- `{f}`" for f in _files))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 6. Export as a single-file bundle
+
+    `write_cooldown()` generates a fully-resolved YAML file containing metadata,
+    chip info, all wiring lines (expanded), and pre-computed summaries.
+    Viewers only need to read this one file — no module expansion or component
+    resolution required.
+    """)
+    return
+
+
+@app.cell
+def _(cooldown, mo):
+    import tempfile as _tempfile
+    from pathlib import Path as _Path
+
+    from cryo_wiring_core.bundle import write_cooldown
+
+    _output_dir = _Path(_tempfile.mkdtemp()) / "output"
+    _result = cooldown.write(_output_dir)
+    _cooldown_path = write_cooldown(
+        _output_dir,
+        components_path=_output_dir / "components.yaml",
+    )
+    _size = _cooldown_path.stat().st_size
+    mo.md(
+        f"Wrote `{_cooldown_path.name}` ({_size:,} bytes) — a single file containing "
+        f"the entire resolved cooldown.\n\n"
+        f"```yaml\n{_cooldown_path.read_text()[:500]}...\n```"
+    )
     return
 
 

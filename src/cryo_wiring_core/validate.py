@@ -50,3 +50,11 @@ def validate_chip(data: dict[str, Any]) -> None:
     Raises ``jsonschema.ValidationError`` on failure.
     """
     jsonschema.validate(data, _load_schema("chip.schema.json"))
+
+
+def validate_cooldown(data: dict[str, Any]) -> None:
+    """Validate a resolved cooldown against the schema.
+
+    Raises ``jsonschema.ValidationError`` on failure.
+    """
+    jsonschema.validate(data, _load_schema("cooldown.schema.json"))
