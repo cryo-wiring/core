@@ -1,4 +1,4 @@
-.PHONY: sync-schemas check-schemas test
+.PHONY: sync-schemas check-schemas test build
 
 SCHEMA_SRC := spec/schema
 SCHEMA_DST := src/cryo_wiring_core/schemas
@@ -16,3 +16,6 @@ check-schemas:
 
 test:
 	uv run pytest tests/ -v
+
+build:
+	uv build

@@ -84,10 +84,49 @@ CI runs this automatically on every push/PR to catch schema drift.
 
 All functions raise `jsonschema.ValidationError` on failure, return `None` on success.
 
+## Release
+
+Releases are published to PyPI automatically via GitHub Actions using [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC).
+
+### Steps
+
+1. Update `version` in `pyproject.toml`
+2. Commit and push to `main`
+3. Create and push a git tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The `publish.yml` workflow will:
+1. Run tests and schema sync check
+2. Build sdist + wheel
+3. Publish to PyPI via OIDC (no API token needed)
+
+### PyPI Setup (one-time)
+
+On [pypi.org](https://pypi.org):
+
+1. Go to your project settings (or create the project on first publish)
+2. **Publishing** > **Add a new publisher**
+3. Set:
+   - Owner: `cryo-wiring`
+   - Repository: `core`
+   - Workflow: `publish.yml`
+   - Environment: `pypi`
+4. On GitHub, create an environment named `pypi` in the repo settings
+
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`:
+GitHub Actions workflows:
 
+**`ci.yml`** — runs on push/PR to `main`:
 1. Checkout with submodules
 2. `make check-schemas` — fails if bundled schemas diverge from spec submodule
 3. `make test` — runs pytest
+
+**`publish.yml`** — runs on `v*` tags:
+1. Test + schema sync check
+2. Build sdist and wheel
+3. Publish to PyPI via Trusted Publishing
