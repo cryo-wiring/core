@@ -79,6 +79,7 @@ def _():
 
     cooldown = (
         CooldownBuilder(num_qubits=8)
+        .metadata(fridge="your-cryo", chip_name="sample-8q")
         .control_module(
             "ctrl",
             {
@@ -207,7 +208,7 @@ def _(cooldown, mo):
     from pathlib import Path as _Path
 
     _output_dir = _Path(_tempfile.mkdtemp()) / "output"
-    _result = cooldown.write(_output_dir, fridge="anemone", chip_name="sample-8q")
+    _result = cooldown.write(_output_dir, fridge="your-cryo", chip_name="sample-8q")
     _files = sorted(f.name for f in _result.iterdir() if f.suffix == ".yaml")
     mo.md(f"Wrote to `{_result}`:\n\n" + "\n".join(f"- `{f}`" for f in _files))
     return

@@ -67,7 +67,7 @@ from cryo_wiring_core import build_cooldown
 
 build_cooldown(
     output_dir="anemone/current",
-    fridge="anemone",
+    fridge="your-cryo",
     chip_name="sample-chip",
     num_qubits=16,
 )

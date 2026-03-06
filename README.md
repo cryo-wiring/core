@@ -73,7 +73,7 @@ md = cooldown.summary(fmt="markdown")
 cooldown.diagram(output="wiring.svg", representative=True)
 
 # Export YAML files
-cooldown.write("output/", fridge="anemone", chip_name="sample-8q")
+cooldown.write("output/", fridge="your-cryo", chip_name="sample-8q")
 ```
 
 ### Load & inspect an existing cooldown
@@ -93,8 +93,8 @@ generate_diagram(control, readout_send, readout_return, output="wiring.svg")
 from cryo_wiring_core import build_cooldown
 
 build_cooldown(
-    output_dir="anemone/current",
-    fridge="anemone",
+    output_dir="your-cryo/current",
+    fridge="your-cryo",
     chip_name="sample-chip",
     num_qubits=16,
 )

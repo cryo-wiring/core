@@ -185,7 +185,7 @@ class Cooldown:
     for summary / diagram / write.
     """
 
-    __slots__ = ("control", "readout_send", "readout_return", "_builder")
+    __slots__ = ("control", "readout_send", "readout_return", "metadata", "_builder")
 
     def __init__(
         self,
@@ -193,10 +193,12 @@ class Cooldown:
         readout_send: WiringConfig,
         readout_return: WiringConfig,
         builder: CooldownBuilder | None = None,
+        metadata: CooldownMetadata | None = None,
     ) -> None:
         self.control = control
         self.readout_send = readout_send
         self.readout_return = readout_return
+        self.metadata = metadata
         self._builder = builder
 
     # -- unpack support: control, rs, rr = cooldown --
@@ -231,12 +233,12 @@ class Cooldown:
         )
 
         if fmt == "terminal":
-            print_summary(self.control, self.readout_send, self.readout_return, line_type=line_type)
+            print_summary(self.control, self.readout_send, self.readout_return, line_type=line_type, metadata=self.metadata)
             return None
         if fmt == "markdown":
-            return generate_markdown_table(self.control, self.readout_send, self.readout_return, line_type=line_type)
+            return generate_markdown_table(self.control, self.readout_send, self.readout_return, line_type=line_type, metadata=self.metadata)
         if fmt == "html":
-            return generate_html_table(self.control, self.readout_send, self.readout_return, line_type=line_type)
+            return generate_html_table(self.control, self.readout_send, self.readout_return, line_type=line_type, metadata=self.metadata)
         raise ValueError(f"Unknown format: {fmt!r}. Use 'terminal', 'markdown', or 'html'.")
 
     def diagram(
@@ -257,6 +259,7 @@ class Cooldown:
             filter_lines=filter_lines,
             representative=representative,
             width=width,
+            metadata=self.metadata,
         )
 
     def write(
@@ -365,6 +368,31 @@ class CooldownBuilder:
         self._rs: tuple[str, dict[Stage, ComponentList]] | None = None
         self._rr: tuple[str, dict[Stage, ComponentList]] | None = None
         self._overrides: list[tuple] = []
+        self._fridge: str = ""
+        self._chip_name: str = ""
+        self._cooldown_id: str = "cd001"
+        self._cooldown_date: str = ""
+        self._operator: str = ""
+        self._purpose: str = ""
+
+    def metadata(
+        self,
+        *,
+        fridge: str = "",
+        chip_name: str = "",
+        cooldown_id: str = "cd001",
+        cooldown_date: str = "",
+        operator: str = "",
+        purpose: str = "",
+    ) -> CooldownBuilder:
+        """Set metadata for the cooldown."""
+        self._fridge = fridge
+        self._chip_name = chip_name
+        self._cooldown_id = cooldown_id
+        self._cooldown_date = cooldown_date
+        self._operator = operator
+        self._purpose = purpose
+        return self
 
     def control_module(
         self,
@@ -545,7 +573,18 @@ class CooldownBuilder:
         for cfg in (control, readout_send, readout_return):
             self._apply_overrides(cfg)
 
-        return Cooldown(control, readout_send, readout_return, builder=self)
+        meta = None
+        if self._fridge or self._chip_name:
+            d = self._cooldown_date or date.today().isoformat()
+            meta = CooldownMetadata(
+                cooldown_id=self._cooldown_id,
+                date=d,
+                fridge=self._fridge,
+                operator=self._operator,
+                purpose=self._purpose,
+            )
+
+        return Cooldown(control, readout_send, readout_return, builder=self, metadata=meta)
 
     def _module_to_yaml_dict(
         self,

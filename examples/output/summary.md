@@ -1,3 +1,11 @@
+## Cooldown Info
+
+| Key | Value |
+|---|---|
+| Cooldown ID | `cd001` |
+| Date | 2026-03-06 |
+| Fridge | your-cryo |
+
 ### Control
 
 | Line ID | Qubit(s) | Atten (dB) | Gain (dB) | RT | 50K | 4K | Still | CP | MXC |

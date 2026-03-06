@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 
 from cryo_wiring_core.models import (
     ControlLine,
+    CooldownMetadata,
     ReadoutLine,
     Stage,
     STAGE_ORDER,
@@ -286,6 +287,7 @@ def generate_diagram(
     filter_lines: list[str] | None = None,
     representative: bool = False,
     width: float = 3.375,
+    metadata: CooldownMetadata | None = None,
 ) -> Path:
     """Generate a publication-quality wiring diagram.
 
@@ -334,7 +336,8 @@ def generate_diagram(
     last_stage = STAGE_ORDER[-1]
     mxc_band_bottom = stage_y[last_stage] - stage_h[last_stage] / 2
     y_bottom = mxc_band_bottom - _DUT_GAP - _DUT_HEIGHT - 0.08
-    y_top = _HEADER_HEIGHT + 0.15
+    _title_height = 0.30 if metadata is not None else 0.0
+    y_top = _HEADER_HEIGHT + 0.15 + _title_height
 
     data_w = x_max
     data_h = y_top - y_bottom
@@ -342,6 +345,30 @@ def generate_diagram(
 
     with mpl.rc_context(_RC):
         fig, ax = plt.subplots(figsize=(width, fig_height))
+
+        # Draw metadata info box (top-left)
+        if metadata is not None:
+            _meta_lines = [
+                f"{metadata.fridge}  /  {metadata.cooldown_id}",
+                metadata.date,
+            ]
+            _meta_text = "\n".join(_meta_lines)
+            ax.text(
+                0.02,
+                y_top - 0.05,
+                _meta_text,
+                ha="left", va="top",
+                fontsize=_FS_COMP, fontweight="bold", color="#333333",
+                linespacing=1.4,
+                bbox=dict(
+                    boxstyle="round,pad=0.3",
+                    facecolor="white",
+                    edgecolor=_BAND_EDGE,
+                    linewidth=0.4,
+                    alpha=0.95,
+                ),
+                zorder=10,
+            )
 
         _draw_stages(ax, band_left, band_right, stage_y, stage_h)
 
@@ -353,7 +380,7 @@ def generate_diagram(
 
         _draw_dut(ax, band_left, band_right, mxc_band_bottom, line_xs, stage_y[last_stage])
 
-        # Legend (only when multiple line styles are present)
+        # Legend (bottom-right, avoid overlap with metadata box)
         has_styles = {ls for _, ls, _ in line_info}
         if len(has_styles) > 1:
             from matplotlib.lines import Line2D

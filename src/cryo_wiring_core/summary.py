@@ -6,6 +6,7 @@ from pathlib import Path
 
 from cryo_wiring_core.models import (
     ControlLine,
+    CooldownMetadata,
     ReadoutLine,
     Stage,
     STAGE_ORDER,
@@ -63,11 +64,56 @@ def grouped_summaries(
 
 # -- Formatting (no extra deps) --
 
+def _metadata_markdown(metadata: CooldownMetadata | None) -> list[str]:
+    """Generate metadata header lines for Markdown output."""
+    if metadata is None:
+        return []
+    parts: list[str] = ["## Cooldown Info", ""]
+    parts.append(f"| Key | Value |")
+    parts.append("|---|---|")
+    parts.append(f"| Cooldown ID | `{metadata.cooldown_id}` |")
+    parts.append(f"| Date | {metadata.date} |")
+    parts.append(f"| Fridge | {metadata.fridge} |")
+    if metadata.operator:
+        parts.append(f"| Operator | {metadata.operator} |")
+    if metadata.purpose:
+        parts.append(f"| Purpose | {metadata.purpose} |")
+    if metadata.notes:
+        parts.append(f"| Notes | {metadata.notes} |")
+    parts.append("")
+    return parts
+
+
+def _metadata_html(metadata: CooldownMetadata | None) -> list[str]:
+    """Generate metadata header for HTML output."""
+    if metadata is None:
+        return []
+    rows = [
+        f"<tr><td><b>Cooldown ID</b></td><td><code>{metadata.cooldown_id}</code></td></tr>",
+        f"<tr><td><b>Date</b></td><td>{metadata.date}</td></tr>",
+        f"<tr><td><b>Fridge</b></td><td>{metadata.fridge}</td></tr>",
+    ]
+    if metadata.operator:
+        rows.append(f"<tr><td><b>Operator</b></td><td>{metadata.operator}</td></tr>")
+    if metadata.purpose:
+        rows.append(f"<tr><td><b>Purpose</b></td><td>{metadata.purpose}</td></tr>")
+    if metadata.notes:
+        rows.append(f"<tr><td><b>Notes</b></td><td>{metadata.notes}</td></tr>")
+    return [
+        "<h2>Cooldown Info</h2>",
+        "<table border='1' cellpadding='4' cellspacing='0'>",
+        *rows,
+        "</table>",
+        "",
+    ]
+
+
 def generate_markdown_table(
     control: WiringConfig,
     readout_send: WiringConfig,
     readout_return: WiringConfig,
     line_type: str = "all",
+    metadata: CooldownMetadata | None = None,
 ) -> str:
     """Generate a Markdown summary with separate tables per section."""
     groups = grouped_summaries(control, readout_send, readout_return, line_type)
@@ -77,7 +123,7 @@ def generate_markdown_table(
     n_cols = 4 + len(STAGE_ORDER)
     table_sep = "|" + "|".join(["---"] * n_cols) + "|"
 
-    parts: list[str] = []
+    parts: list[str] = _metadata_markdown(metadata)
     for label, summaries in groups:
         parts.append(f"### {label}")
         parts.append("")
@@ -101,6 +147,7 @@ def generate_html_table(
     readout_send: WiringConfig,
     readout_return: WiringConfig,
     line_type: str = "all",
+    metadata: CooldownMetadata | None = None,
 ) -> str:
     """Generate an HTML summary with separate tables per section."""
     groups = grouped_summaries(control, readout_send, readout_return, line_type)
@@ -111,7 +158,7 @@ def generate_html_table(
         f"<tr><th>Line ID</th><th>Qubit(s)</th>"
         f"<th>Atten (dB)</th><th>Gain (dB)</th>{stage_headers}</tr>\n"
     )
-    parts: list[str] = []
+    parts: list[str] = _metadata_html(metadata)
     for label, summaries in groups:
         parts.append(f"<h3>{label}</h3>")
         rows = []
@@ -140,6 +187,7 @@ def print_summary(
     line_type: str = "all",
     fmt: str = "terminal",
     output: str | Path | None = None,
+    metadata: CooldownMetadata | None = None,
 ) -> None:
     """Print or export a wiring summary table.
 
@@ -151,6 +199,23 @@ def print_summary(
 
         groups = grouped_summaries(control, readout_send, readout_return, line_type)
         console = Console()
+
+        if metadata is not None:
+            meta_table = Table(title="Cooldown Info", show_lines=True)
+            meta_table.add_column("Key", style="bold")
+            meta_table.add_column("Value")
+            meta_table.add_row("Cooldown ID", metadata.cooldown_id)
+            meta_table.add_row("Date", metadata.date)
+            meta_table.add_row("Fridge", metadata.fridge)
+            if metadata.operator:
+                meta_table.add_row("Operator", metadata.operator)
+            if metadata.purpose:
+                meta_table.add_row("Purpose", metadata.purpose)
+            if metadata.notes:
+                meta_table.add_row("Notes", metadata.notes)
+            console.print(meta_table)
+            console.print()
+
         for label, summaries in groups:
             table = Table(title=label, show_lines=True)
             table.add_column("Line ID", style="bold")
@@ -175,14 +240,14 @@ def print_summary(
             console.print()
 
     elif fmt == "html":
-        html = generate_html_table(control, readout_send, readout_return, line_type)
+        html = generate_html_table(control, readout_send, readout_return, line_type, metadata=metadata)
         if output:
             Path(output).write_text(html)
         else:
             print(html)
 
     elif fmt == "markdown":
-        md = generate_markdown_table(control, readout_send, readout_return, line_type)
+        md = generate_markdown_table(control, readout_send, readout_return, line_type, metadata=metadata)
         if output:
             Path(output).write_text(md)
         else:

@@ -98,7 +98,7 @@ cooldown.diagram(output="wiring.pdf")
 ## Export YAML files
 
 ```python
-cooldown.write("output/", fridge="anemone", chip_name="sample-8q")
+cooldown.write("output/", fridge="your-cryo", chip_name="sample-8q")
 ```
 
 This creates a directory following the [cryo-wiring spec](https://cryo-wiring.github.io/spec/) format:
