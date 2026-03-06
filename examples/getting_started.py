@@ -25,8 +25,17 @@ async def _():
     if "pyodide" in _sys.modules:
         import micropip as _micropip
 
-        _WHEEL_URL = "https://github.com/cryo-wiring/core/releases/download/v0.1.0/cryo_wiring_core-0.1.0-py3-none-any.whl"
-        await _micropip.install(_WHEEL_URL)
+        await _micropip.install(
+            ["jsonschema", "matplotlib", "pydantic", "pyyaml", "rich"]
+        )
+        _WHEEL = "cryo_wiring_core-0.1.0-py3-none-any.whl"
+        try:
+            await _micropip.install(f"./files/{_WHEEL}", deps=False)
+        except Exception:
+            await _micropip.install(
+                f"https://cryo-wiring.github.io/core/marimo/files/{_WHEEL}",
+                deps=False,
+            )
     return (mo,)
 
 
