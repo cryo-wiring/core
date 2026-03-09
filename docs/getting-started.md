@@ -114,9 +114,9 @@ output/
 
 ## Interactive notebook
 
-For a hands-on experience, try the [Playground](playground.md) or run the example locally:
+For a hands-on experience, try the [Playground](playground.md) or run the tutorial locally:
 
 ```bash
-uv sync --group example
-uv run marimo edit examples/getting_started.py
+pip install cryowire jupyter
+jupyter notebook examples/notebooks/tutorial.ipynb
 ```

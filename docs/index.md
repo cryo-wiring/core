@@ -21,6 +21,6 @@ pip install cryowire
 
 ## Try it online
 
-The [Playground](../marimo/) lets you run the getting-started notebook directly in your browser — no installation required.
+The [Playground](playground.md) lets you run the getting-started notebook directly in your browser — no installation required.
 
 See **[cryowire.github.io](https://cryowire.github.io/)** for the full project overview.

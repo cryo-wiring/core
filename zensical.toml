@@ -1,7 +1,7 @@
 [project]
 site_name = "cryowire"
 site_description = "Python library for dilution refrigerator wiring configuration"
-site_url = "https://cryowire.github.io/core/"
+site_url = "https://cryowire.github.io/cryowire/"
 nav = [
   {"Home" = "index.md"},
   {"Getting Started" = "getting-started.md"},
