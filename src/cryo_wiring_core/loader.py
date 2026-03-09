@@ -11,9 +11,26 @@ import yaml
 from cryo_wiring_core.models import ChipConfig, CooldownMetadata, WiringConfig
 
 
-def templates_dir() -> Path:
+def bundled_templates_dir() -> Path:
     """Return the path to the bundled templates directory."""
     return Path(str(importlib.resources.files("cryo_wiring_core") / "templates"))
+
+
+def templates_dir() -> Path:
+    """Return the path to the bundled templates directory.
+
+    .. deprecated::
+        Use :func:`bundled_templates_dir` or :func:`resolve_templates_dir`
+        for explicit control.
+    """
+    return bundled_templates_dir()
+
+
+def resolve_templates_dir(template_path: Path | None = None) -> Path:
+    """Return *template_path* if provided, otherwise the bundled templates."""
+    if template_path is not None and template_path.is_dir():
+        return template_path
+    return bundled_templates_dir()
 
 
 def default_components_path() -> Path:

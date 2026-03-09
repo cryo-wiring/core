@@ -59,6 +59,7 @@ from cryo_wiring_core.loader import (
     default_components_path,
     load_components,
     load_yaml,
+    resolve_templates_dir,
     templates_dir,
 )
 from cryo_wiring_core.models import (
@@ -774,12 +775,16 @@ class CooldownBuilder:
 def _load_module_template(
     template_filename: str,
     catalog: dict,
+    template_path: Path | None = None,
 ) -> tuple[str, dict]:
     """Load a module template and resolve component references.
 
+    *template_path* overrides the bundled templates directory.
+
     Returns (module_name, resolved_module_def).
     """
-    data = load_yaml(templates_dir() / template_filename)
+    tdir = resolve_templates_dir(template_path)
+    data = load_yaml(tdir / template_filename)
     name = next(iter(data))
     module_def = data[name]
     module_def["stages"] = _resolve_components_in_stages(module_def["stages"], catalog)
@@ -796,8 +801,9 @@ def build_cooldown(
     operator: str = "",
     purpose: str = "",
     components_path: Path | None = None,
+    template_path: Path | None = None,
 ) -> Path:
-    """Generate a complete cooldown directory from bundled templates.
+    """Generate a complete cooldown directory from templates.
 
     Parameters
     ----------
@@ -819,6 +825,10 @@ def build_cooldown(
         Purpose description.
     components_path
         Path to a custom components catalog.  Defaults to the bundled catalog.
+    template_path
+        Path to a custom templates directory.  When set, module templates
+        and metadata template are loaded from this directory instead of
+        the bundled defaults.
 
     Returns
     -------
@@ -830,8 +840,10 @@ def build_cooldown(
 
     d = cooldown_date or date.today().isoformat()
 
+    tdir = resolve_templates_dir(template_path)
+
     # metadata.yaml
-    meta_template = templates_dir() / "metadata.yaml"
+    meta_template = tdir / "metadata.yaml"
     content = meta_template.read_text()
     content = (
         content
@@ -854,21 +866,21 @@ def build_cooldown(
     catalog = load_components(comp_path)
 
     # Control
-    ctrl_name, ctrl_def = _load_module_template("control_module.yaml", catalog)
+    ctrl_name, ctrl_def = _load_module_template("control_module.yaml", catalog, template_path)
     ctrl_lines = make_control_lines(num_qubits, ctrl_name)
     (output / "control.yaml").write_text(
         _dump_yaml(make_wiring_yaml(ctrl_def, ctrl_name, ctrl_lines))
     )
 
     # Readout send
-    rs_name, rs_def = _load_module_template("readout_send_module.yaml", catalog)
+    rs_name, rs_def = _load_module_template("readout_send_module.yaml", catalog, template_path)
     rs_lines = make_readout_send_lines(num_qubits, rs_name)
     (output / "readout_send.yaml").write_text(
         _dump_yaml(make_wiring_yaml(rs_def, rs_name, rs_lines))
     )
 
     # Readout return
-    rr_name, rr_def = _load_module_template("readout_return_module.yaml", catalog)
+    rr_name, rr_def = _load_module_template("readout_return_module.yaml", catalog, template_path)
     rr_lines = make_readout_return_lines(num_qubits, rr_name)
     (output / "readout_return.yaml").write_text(
         _dump_yaml(make_wiring_yaml(rr_def, rr_name, rr_lines))

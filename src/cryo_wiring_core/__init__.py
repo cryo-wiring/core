@@ -1,12 +1,19 @@
 """cryo-wiring-core: JSON Schema validation, data models, and loaders for cryo-wiring configuration files."""
 
+from cryo_wiring_core.config import (
+    find_config,
+    load_config,
+    resolve_template_path,
+)
 from cryo_wiring_core.loader import (
+    bundled_templates_dir,
     default_components_path,
     expand_modules,
     load_chip,
     load_components,
     load_cooldown,
     load_yaml,
+    resolve_templates_dir,
     templates_dir,
 )
 from cryo_wiring_core.models import (
@@ -68,12 +75,17 @@ __all__ = [
     "grouped_summaries",
     "line_summary",
     "print_summary",
+    "find_config",
+    "load_config",
+    "resolve_template_path",
+    "bundled_templates_dir",
     "default_components_path",
     "expand_modules",
     "load_chip",
     "load_components",
     "load_cooldown",
     "load_yaml",
+    "resolve_templates_dir",
     "templates_dir",
     "validate_bundle",
     "validate_chip",
