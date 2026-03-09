@@ -105,7 +105,7 @@ generate_diagram(control, readout_send, readout_return, output="wiring.svg")
 from cryo_wiring_core import build_cooldown
 
 build_cooldown(
-    output_dir="your-cryo/current",
+    output_dir="your-cryo/2026/cd001",
     cryo="your-cryo",
     chip_name="sample-chip",
     num_qubits=16,
