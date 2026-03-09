@@ -31,14 +31,11 @@ jobs:
           uv sync --group docs
           uv run zensical build
 
-      - name: Export marimo notebook as WASM
+      - name: Build JupyterLite playground
         run: |
-          uv sync --group example
-          uv run marimo export html-wasm examples/getting_started.py -o site/marimo/index.html --mode edit
-
-      - name: Bundle wheel for Pyodide
-        run: |
-          uv build --wheel --out-dir site/marimo/files/
+          uv sync --group playground
+          uv build --wheel --out-dir examples/pypi/
+          uv run jupyter lite build --lite-dir examples --contents examples/notebooks --output-dir site/playground/lite
 
       - uses: actions/upload-pages-artifact@v3
         with:
