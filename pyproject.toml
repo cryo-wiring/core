@@ -46,4 +46,4 @@ version-file = "src/cryowire/_version.py"
 [dependency-groups]
 dev = ["pytest>=8.0"]
 docs = ["zensical"]
-example = ["marimo>=0.10"]
+playground = ["jupyterlite-core>=0.4", "jupyterlite-pyodide-kernel>=0.4", "jupyter-server>=2.0"]
