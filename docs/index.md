@@ -23,11 +23,4 @@ pip install cryowire
 
 The [Playground](../marimo/) lets you run the getting-started notebook directly in your browser — no installation required.
 
-## Related Repositories
-
-| Repository | Description |
-| --- | --- |
-| [cryowire/spec](https://cryowire.github.io/spec/) | YAML format specification & schemas |
-| [cryowire/cli](https://github.com/cryowire/cli) | CLI tool |
-| [cryowire/app](https://github.com/cryowire/app) | Web UI (FastAPI + Next.js) |
-| [cryowire/template](https://github.com/cryowire/template) | Data repository template |
+See **[cryowire.github.io](https://cryowire.github.io/)** for the full project overview.

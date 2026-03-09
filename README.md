@@ -1,15 +1,13 @@
-# Cryo Wiring Core
+<p align="center"><a href="https://github.com/cryowire">
+  <img src="https://raw.githubusercontent.com/cryowire/artwork/main/logo-type/logotype.png" alt="cryowire" width="600" />
+</a></p>
 
-Python library for dilution refrigerator wiring configuration — data models, validation, diagram generation, and programmatic building.
-
-## Related Repositories
-
-| Repository                                                      | Description                          |
-| --------------------------------------------------------------- | ------------------------------------ |
-| [cryowire/spec](https://github.com/cryowire/spec)         | YAML format specification & schemas  |
-| [cryowire/cli](https://github.com/cryowire/cli)           | CLI tool                             |
-| [cryowire/app](https://github.com/cryowire/app)           | Web UI (FastAPI + Next.js)           |
-| [cryowire/template](https://github.com/cryowire/template) | Data repository template             |
+<h1 align="center">cryowire</h1>
+<p align="center">Python library for dilution refrigerator wiring configuration — data models, validation, diagram generation, and programmatic building.</p>
+<p align="center">
+  <a href="https://cryowire.github.io/"><img src="https://img.shields.io/badge/Website-cryowire.github.io-38bdf8?style=for-the-badge" alt="Website" /></a>
+  <a href="https://cryowire.github.io/core/"><img src="https://img.shields.io/badge/Docs-API_Reference-818cf8?style=for-the-badge" alt="Docs" /></a>
+</p>
 
 ## Installation
 
