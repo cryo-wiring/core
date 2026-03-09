@@ -6,7 +6,7 @@
 <p align="center">Python library for dilution refrigerator wiring configuration — data models, validation, diagram generation, and programmatic building.</p>
 <p align="center">
   <a href="https://cryowire.github.io/"><img src="https://img.shields.io/badge/Website-cryowire.github.io-38bdf8?style=for-the-badge" alt="Website" /></a>
-  <a href="https://cryowire.github.io/core/"><img src="https://img.shields.io/badge/Docs-API_Reference-818cf8?style=for-the-badge" alt="Docs" /></a>
+  <a href="https://cryowire.github.io/cryowire/"><img src="https://img.shields.io/badge/Docs-API_Reference-818cf8?style=for-the-badge" alt="Docs" /></a>
 </p>
 
 ## Installation
@@ -147,20 +147,20 @@ This package bundles JSON Schema files from [cryowire-spec](https://github.com/c
 
 ## Documentation
 
-Full documentation is available at **[cryowire.github.io/core](https://cryowire.github.io/core/)**.
+Full documentation is available at **[cryowire.github.io/cryowire](https://cryowire.github.io/cryowire/)**.
 
 ## Examples
 
-Interactive [marimo](https://marimo.io/) notebooks are available in the `examples/` directory.
+A Jupyter notebook tutorial is available in the `examples/notebooks/` directory.
 
 ```bash
-uv sync --group example
-uv run marimo edit examples/getting_started.py
+pip install cryowire jupyter
+jupyter notebook examples/notebooks/tutorial.ipynb
 ```
 
 The notebook covers builder usage, summary tables, SVG diagram rendering, and component add/remove/replace operations.
 
-Try it online in the [Playground](https://cryowire.github.io/core/marimo/) — no installation required.
+Try it online in the [Playground](https://cryowire.github.io/cryowire/playground/) — no installation required.
 
 ## Development
 
