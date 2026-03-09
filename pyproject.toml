@@ -29,9 +29,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cryowire/core"
-Repository = "https://github.com/cryowire/core"
-Issues = "https://github.com/cryowire/core/issues"
+Homepage = "https://github.com/cryowire/cryowire"
+Repository = "https://github.com/cryowire/cryowire"
+Issues = "https://github.com/cryowire/cryowire/issues"
 
 [build-system]
 requires = ["uv_build>=0.9.11,<0.10.0"]

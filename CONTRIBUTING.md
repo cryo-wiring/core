@@ -8,8 +8,8 @@
 ## Setup
 
 ```bash
-git clone --recurse-submodules https://github.com/cryowire/core.git
-cd core
+git clone --recurse-submodules https://github.com/cryowire/cryowire.git
+cd cryowire
 uv sync
 ```
 
@@ -22,7 +22,7 @@ git submodule update --init
 ## Project Structure
 
 ```
-core/
+cryowire/
 ├── spec/                           # git submodule (cryowire/spec)
 │   └── schema/                     # canonical JSON Schema files
 ├── src/cryowire/
@@ -112,7 +112,7 @@ On [pypi.org](https://pypi.org):
 2. **Publishing** > **Add a new publisher**
 3. Set:
    - Owner: `cryowire`
-   - Repository: `core`
+   - Repository: `cryowire`
    - Workflow: `publish.yml`
    - Environment: `pypi`
 4. On GitHub, create an environment named `pypi` in the repo settings
