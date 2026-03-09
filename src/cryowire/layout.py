@@ -1,4 +1,4 @@
-"""Directory layout management for cryo-wiring data repositories.
+"""Directory layout management for cryowire data repositories.
 
 Standard layout::
 

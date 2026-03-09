@@ -1,6 +1,6 @@
 # Diagram
 
-::: cryo_wiring_core.diagram
+::: cryowire.diagram
 
 ## generate_diagram()
 

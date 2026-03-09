@@ -3,7 +3,7 @@
 ## Installation
 
 ```bash
-pip install cryo-wiring-core
+pip install cryowire
 ```
 
 ## Build a cooldown configuration
@@ -12,7 +12,7 @@ pip install cryo-wiring-core
 Define modules, apply per-line overrides, and call `.build()` in a single expression.
 
 ```python
-from cryo_wiring_core import (
+from cryowire import (
     Amplifier,
     Attenuator,
     CooldownBuilder,
@@ -101,7 +101,7 @@ cooldown.diagram(output="wiring.pdf")
 cooldown.write("output/", cryo="your-cryo", chip_name="sample-8q")
 ```
 
-This creates a directory following the [cryo-wiring spec](https://cryo-wiring.github.io/spec/) format:
+This creates a directory following the [cryowire spec](https://cryowire.github.io/spec/) format:
 
 ```
 output/

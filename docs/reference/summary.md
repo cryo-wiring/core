@@ -1,6 +1,6 @@
 # Summary
 
-::: cryo_wiring_core.summary
+::: cryowire.summary
 
 ## Functions
 

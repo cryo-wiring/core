@@ -21,19 +21,19 @@ async def _():
     import marimo as mo
     import sys as _sys
 
-    # Install cryo-wiring-core in Pyodide (WASM) environment
+    # Install cryowire in Pyodide (WASM) environment
     if "pyodide" in _sys.modules:
         import micropip as _micropip
 
         await _micropip.install(
             ["jsonschema", "matplotlib", "pydantic", "pyyaml", "rich"]
         )
-        _WHEEL = "cryo_wiring_core-0.1.0-py3-none-any.whl"
+        _WHEEL = "cryowire-0.1.0-py3-none-any.whl"
         try:
             await _micropip.install(f"./files/{_WHEEL}", deps=False)
         except Exception:
             await _micropip.install(
-                f"https://cryo-wiring.github.io/core/marimo/files/{_WHEEL}",
+                f"https://cryowire.github.io/core/marimo/files/{_WHEEL}",
                 deps=False,
             )
     return (mo,)
@@ -44,7 +44,7 @@ def _(mo):
     mo.md(r"""
     # Cryo Wiring Core - Getting Started
 
-    This notebook demonstrates the main features of `cryo-wiring-core`:
+    This notebook demonstrates the main features of `cryowire`:
 
     1. **Builder** - Programmatically define wiring configurations
     2. **Per-line overrides** - Add / remove / replace components on individual lines
@@ -69,7 +69,7 @@ def _(mo):
 
 @app.cell
 def _():
-    from cryo_wiring_core import (
+    from cryowire import (
         Amplifier,
         Attenuator,
         ChipConfig,
@@ -199,7 +199,7 @@ def _(mo):
     ## 5. Write YAML files
 
     `cooldown.write()` exports the configuration as a set of YAML files
-    that follow the [cryo-wiring spec](https://github.com/cryo-wiring/spec).
+    that follow the [cryowire spec](https://github.com/cryowire/spec).
     """)
     return
 
@@ -234,7 +234,7 @@ def _(cooldown, mo):
     import tempfile as _tempfile
     from pathlib import Path as _Path
 
-    from cryo_wiring_core.bundle import write_cooldown
+    from cryowire.bundle import write_cooldown
 
     _output_dir = _Path(_tempfile.mkdtemp()) / "output"
     _result = cooldown.write(_output_dir)

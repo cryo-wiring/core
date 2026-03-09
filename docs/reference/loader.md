@@ -1,6 +1,6 @@
 # Loader
 
-::: cryo_wiring_core.loader
+::: cryowire.loader
 
 ## Functions
 

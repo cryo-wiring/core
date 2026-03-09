@@ -4,7 +4,7 @@ Two usage patterns:
 
 1. **Template-based** — generates a cooldown directory from bundled templates::
 
-    from cryo_wiring_core.builder import build_cooldown
+    from cryowire.builder import build_cooldown
 
     build_cooldown(
         output_dir="my-cryo/2026/cd001",
@@ -15,7 +15,7 @@ Two usage patterns:
 
 2. **Catalog + Builder** — define components, build wiring, apply overrides::
 
-    from cryo_wiring_core import *
+    from cryowire import *
 
     catalog = {
         "XMA-10dB": Attenuator(manufacturer="XMA", model="2082-6431-10", value_dB=10),
@@ -54,7 +54,7 @@ from typing import Sequence, Union
 
 import yaml
 
-from cryo_wiring_core.loader import (
+from cryowire.loader import (
     _resolve_components_in_stages,
     default_components_path,
     load_components,
@@ -62,7 +62,7 @@ from cryo_wiring_core.loader import (
     resolve_templates_dir,
     templates_dir,
 )
-from cryo_wiring_core.models import (
+from cryowire.models import (
     Amplifier,
     Attenuator,
     ChipConfig,
@@ -225,7 +225,7 @@ class Cooldown:
         diagram
             Relative path to a diagram image to embed (markdown only).
         """
-        from cryo_wiring_core.summary import (
+        from cryowire.summary import (
             generate_html_table,
             generate_markdown_table,
             print_summary,
@@ -248,7 +248,7 @@ class Cooldown:
         width: float = 3.375,
     ) -> Path:
         """Generate a publication-quality wiring diagram."""
-        from cryo_wiring_core.diagram import generate_diagram
+        from cryowire.diagram import generate_diagram
 
         return generate_diagram(
             self.control,

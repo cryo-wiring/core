@@ -38,7 +38,7 @@ cooldown.summary(line_type="readout_return")
 For use with `WiringConfig` objects directly:
 
 ```python
-from cryo_wiring_core import print_summary, generate_markdown_table, generate_html_table
+from cryowire import print_summary, generate_markdown_table, generate_html_table
 
 print_summary(control, readout_send, readout_return)
 md = generate_markdown_table(control, readout_send, readout_return)

@@ -6,8 +6,8 @@ from pathlib import Path
 
 import yaml
 
-from cryo_wiring_core.loader import load_chip, load_cooldown, load_yaml
-from cryo_wiring_core.models import (
+from cryowire.loader import load_chip, load_cooldown, load_yaml
+from cryowire.models import (
     ChipConfig,
     ControlLine,
     CooldownMetadata,
@@ -16,7 +16,7 @@ from cryo_wiring_core.models import (
     STAGE_ORDER,
     WiringConfig,
 )
-from cryo_wiring_core.summary import grouped_summaries
+from cryowire.summary import grouped_summaries
 
 
 def _serialize_component(comp: object) -> dict:

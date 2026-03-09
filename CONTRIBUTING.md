@@ -8,7 +8,7 @@
 ## Setup
 
 ```bash
-git clone --recurse-submodules https://github.com/cryo-wiring/core.git
+git clone --recurse-submodules https://github.com/cryowire/core.git
 cd core
 uv sync
 ```
@@ -23,9 +23,9 @@ git submodule update --init
 
 ```
 core/
-├── spec/                           # git submodule (cryo-wiring/spec)
+├── spec/                           # git submodule (cryowire/spec)
 │   └── schema/                     # canonical JSON Schema files
-├── src/cryo_wiring_core/
+├── src/cryowire/
 │   ├── __init__.py                 # public API exports
 │   ├── validate.py                 # validation functions
 │   └── schemas/                    # bundled schemas (copied from spec/)
@@ -48,7 +48,7 @@ uv run pytest tests/ -v
 
 ### Sync schemas from spec submodule
 
-When `cryo-wiring/spec` is updated:
+When `cryowire/spec` is updated:
 
 ```bash
 git submodule update --remote spec   # pull latest spec
@@ -66,7 +66,7 @@ CI runs this automatically on every push/PR to catch schema drift.
 
 ### Add a new schema
 
-1. Schema is added to `cryo-wiring/spec` first (source of truth)
+1. Schema is added to `cryowire/spec` first (source of truth)
 2. Update the spec submodule: `git submodule update --remote spec`
 3. Run `make sync-schemas`
 4. Add a `validate_<name>()` function in `validate.py`
@@ -111,7 +111,7 @@ On [pypi.org](https://pypi.org):
 1. Go to your project settings (or create the project on first publish)
 2. **Publishing** > **Add a new publisher**
 3. Set:
-   - Owner: `cryo-wiring`
+   - Owner: `cryowire`
    - Repository: `core`
    - Workflow: `publish.yml`
    - Environment: `pypi`

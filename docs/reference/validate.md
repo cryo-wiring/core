@@ -1,6 +1,6 @@
 # Validate
 
-::: cryo_wiring_core.validate
+::: cryowire.validate
 
 ## Functions
 

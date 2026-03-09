@@ -1,4 +1,4 @@
-"""Load and resolve `.cryo-wiring.yaml` project configuration."""
+"""Load and resolve `.cryowire.yaml` project configuration."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ from pathlib import Path
 import yaml
 
 
-CONFIG_FILENAME = ".cryo-wiring.yaml"
+CONFIG_FILENAME = ".cryowire.yaml"
 
 
 def find_config(start: Path | None = None) -> Path | None:
-    """Walk up from *start* (default: cwd) looking for `.cryo-wiring.yaml`.
+    """Walk up from *start* (default: cwd) looking for `.cryowire.yaml`.
 
     Returns the config file path, or ``None`` if not found.
     """
@@ -24,7 +24,7 @@ def find_config(start: Path | None = None) -> Path | None:
 
 
 def load_config(path: Path) -> dict:
-    """Load a `.cryo-wiring.yaml` file and return its contents."""
+    """Load a `.cryowire.yaml` file and return its contents."""
     with open(path) as f:
         return yaml.safe_load(f) or {}
 
@@ -37,7 +37,7 @@ def resolve_template_path(
 
     Priority:
     1. *explicit* — passed via CLI ``--template-path`` or API parameter.
-    2. ``template_path`` in the nearest `.cryo-wiring.yaml`.
+    2. ``template_path`` in the nearest `.cryowire.yaml`.
     3. ``None`` — caller falls back to bundled templates.
 
     Relative paths in the config are resolved relative to the config file's

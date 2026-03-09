@@ -7,7 +7,7 @@ Python library for dilution refrigerator wiring configuration — data models, v
 | Module     | Description                                               |
 | ---------- | --------------------------------------------------------- |
 | `models`   | Pydantic v2 models (Stage, Component types, WiringConfig) |
-| `validate` | JSON Schema validation against cryo-wiring-spec           |
+| `validate` | JSON Schema validation against cryowire-spec           |
 | `loader`   | YAML loading, module expansion, component catalog         |
 | `builder`  | Programmatic cooldown generation from Python code         |
 | `summary`  | Wiring summary tables (terminal, Markdown, HTML)          |
@@ -16,7 +16,7 @@ Python library for dilution refrigerator wiring configuration — data models, v
 ## Installation
 
 ```bash
-pip install cryo-wiring-core
+pip install cryowire
 ```
 
 ## Try it online
@@ -27,7 +27,7 @@ The [Playground](../marimo/) lets you run the getting-started notebook directly 
 
 | Repository | Description |
 | --- | --- |
-| [cryo-wiring/spec](https://cryo-wiring.github.io/spec/) | YAML format specification & schemas |
-| [cryo-wiring/cli](https://github.com/cryo-wiring/cli) | CLI tool |
-| [cryo-wiring/app](https://github.com/cryo-wiring/app) | Web UI (FastAPI + Next.js) |
-| [cryo-wiring/template](https://github.com/cryo-wiring/template) | Data repository template |
+| [cryowire/spec](https://cryowire.github.io/spec/) | YAML format specification & schemas |
+| [cryowire/cli](https://github.com/cryowire/cli) | CLI tool |
+| [cryowire/app](https://github.com/cryowire/app) | Web UI (FastAPI + Next.js) |
+| [cryowire/template](https://github.com/cryowire/template) | Data repository template |

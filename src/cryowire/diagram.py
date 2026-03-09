@@ -12,7 +12,7 @@ import matplotlib as mpl
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
-from cryo_wiring_core.models import (
+from cryowire.models import (
     ControlLine,
     CooldownMetadata,
     ReadoutLine,

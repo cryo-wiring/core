@@ -1,6 +1,6 @@
 # Builder
 
-::: cryo_wiring_core.builder
+::: cryowire.builder
 
 ## CooldownBuilder
 

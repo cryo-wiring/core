@@ -33,7 +33,7 @@ The output format is determined by the file extension:
 ## Standalone function
 
 ```python
-from cryo_wiring_core import generate_diagram
+from cryowire import generate_diagram
 
 generate_diagram(control, readout_send, readout_return, output="wiring.svg")
 ```

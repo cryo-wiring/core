@@ -1,9 +1,9 @@
-"""Tests for cryo_wiring_core validation."""
+"""Tests for cryowire validation."""
 
 import pytest
 from jsonschema import ValidationError
 
-from cryo_wiring_core import validate_chip, validate_components, validate_metadata, validate_wiring
+from cryowire import validate_chip, validate_components, validate_metadata, validate_wiring
 
 
 class TestValidateWiring:

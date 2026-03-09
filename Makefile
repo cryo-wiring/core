@@ -1,7 +1,7 @@
 .PHONY: sync-schemas check-schemas test build
 
 SCHEMA_SRC := spec/schema
-SCHEMA_DST := src/cryo_wiring_core/schemas
+SCHEMA_DST := src/cryowire/schemas
 
 sync-schemas:
 	cp $(SCHEMA_SRC)/*.schema.json $(SCHEMA_DST)/

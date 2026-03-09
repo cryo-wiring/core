@@ -5,7 +5,7 @@ The `CooldownBuilder` provides a fluent API for constructing wiring configuratio
 ## Basic usage
 
 ```python
-from cryo_wiring_core import CooldownBuilder, Attenuator, Filter, Stage
+from cryowire import CooldownBuilder, Attenuator, Filter, Stage
 
 cooldown = (
     CooldownBuilder(num_qubits=8)
@@ -63,7 +63,7 @@ builder.for_lines("C03", "C05")
 For generating from bundled templates instead of component objects:
 
 ```python
-from cryo_wiring_core import build_cooldown
+from cryowire import build_cooldown
 
 build_cooldown(
     output_dir="your-cryo/2026/cd001",

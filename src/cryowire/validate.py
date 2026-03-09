@@ -1,4 +1,4 @@
-"""JSON Schema validation for cryo-wiring configuration files."""
+"""JSON Schema validation for cryowire configuration files."""
 
 from __future__ import annotations
 

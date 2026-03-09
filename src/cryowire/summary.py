@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cryo_wiring_core.models import (
+from cryowire.models import (
     ControlLine,
     CooldownMetadata,
     ReadoutLine,

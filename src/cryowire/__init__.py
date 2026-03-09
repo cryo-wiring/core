@@ -1,16 +1,16 @@
-"""cryo-wiring-core: JSON Schema validation, data models, and loaders for cryo-wiring configuration files."""
+"""cryowire: JSON Schema validation, data models, and loaders for cryowire configuration files."""
 
-from cryo_wiring_core.config import (
+from cryowire.config import (
     find_config,
     load_config,
     resolve_template_path,
 )
-from cryo_wiring_core.layout import (
+from cryowire.layout import (
     CryoEntry,
     CryoLayout,
     YearGroup,
 )
-from cryo_wiring_core.loader import (
+from cryowire.loader import (
     bundled_templates_dir,
     default_components_path,
     expand_modules,
@@ -21,7 +21,7 @@ from cryo_wiring_core.loader import (
     resolve_templates_dir,
     templates_dir,
 )
-from cryo_wiring_core.models import (
+from cryowire.models import (
     Amplifier,
     Attenuator,
     ChipConfig,
@@ -35,14 +35,14 @@ from cryo_wiring_core.models import (
     STAGE_ORDER,
     WiringConfig,
 )
-from cryo_wiring_core.summary import (
+from cryowire.summary import (
     generate_html_table,
     generate_markdown_table,
     grouped_summaries,
     line_summary,
     print_summary,
 )
-from cryo_wiring_core.validate import (
+from cryowire.validate import (
     validate_cooldown,
     validate_chip,
     validate_components,
@@ -50,7 +50,7 @@ from cryo_wiring_core.validate import (
     validate_wiring,
 )
 
-from cryo_wiring_core.builder import (
+from cryowire.builder import (
     Cooldown,
     CooldownBuilder,
     build_cooldown,
@@ -59,8 +59,8 @@ from cryo_wiring_core.builder import (
     make_readout_send_lines,
     make_wiring_yaml,
 )
-from cryo_wiring_core.bundle import export_cooldown, write_cooldown
-from cryo_wiring_core.diagram import generate_diagram
+from cryowire.bundle import export_cooldown, write_cooldown
+from cryowire.diagram import generate_diagram
 
 __all__ = [
     "Amplifier",

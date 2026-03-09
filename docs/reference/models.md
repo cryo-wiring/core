@@ -1,6 +1,6 @@
 # Models
 
-::: cryo_wiring_core.models
+::: cryowire.models
 
 ## Stage
 

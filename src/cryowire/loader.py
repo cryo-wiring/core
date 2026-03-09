@@ -8,12 +8,12 @@ from pathlib import Path
 
 import yaml
 
-from cryo_wiring_core.models import ChipConfig, CooldownMetadata, WiringConfig
+from cryowire.models import ChipConfig, CooldownMetadata, WiringConfig
 
 
 def bundled_templates_dir() -> Path:
     """Return the path to the bundled templates directory."""
-    return Path(str(importlib.resources.files("cryo_wiring_core") / "templates"))
+    return Path(str(importlib.resources.files("cryowire") / "templates"))
 
 
 def templates_dir() -> Path:

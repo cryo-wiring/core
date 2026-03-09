@@ -6,15 +6,15 @@ Python library for dilution refrigerator wiring configuration — data models, v
 
 | Repository                                                      | Description                          |
 | --------------------------------------------------------------- | ------------------------------------ |
-| [cryo-wiring/spec](https://github.com/cryo-wiring/spec)         | YAML format specification & schemas  |
-| [cryo-wiring/cli](https://github.com/cryo-wiring/cli)           | CLI tool                             |
-| [cryo-wiring/app](https://github.com/cryo-wiring/app)           | Web UI (FastAPI + Next.js)           |
-| [cryo-wiring/template](https://github.com/cryo-wiring/template) | Data repository template             |
+| [cryowire/spec](https://github.com/cryowire/spec)         | YAML format specification & schemas  |
+| [cryowire/cli](https://github.com/cryowire/cli)           | CLI tool                             |
+| [cryowire/app](https://github.com/cryowire/app)           | Web UI (FastAPI + Next.js)           |
+| [cryowire/template](https://github.com/cryowire/template) | Data repository template             |
 
 ## Installation
 
 ```bash
-pip install cryo-wiring-core
+pip install cryowire
 ```
 
 ## Features
@@ -22,7 +22,7 @@ pip install cryo-wiring-core
 | Module      | Description                                                |
 | ----------- | ---------------------------------------------------------- |
 | `models`    | Pydantic v2 models (Stage, Component types, WiringConfig)  |
-| `validate`  | JSON Schema validation against cryo-wiring-spec            |
+| `validate`  | JSON Schema validation against cryowire-spec            |
 | `loader`    | YAML loading, module expansion, component catalog          |
 | `builder`   | Programmatic cooldown generation from Python code          |
 | `summary`   | Wiring summary tables (terminal, Markdown, HTML)           |
@@ -33,7 +33,7 @@ pip install cryo-wiring-core
 ### Build a cooldown
 
 ```python
-from cryo_wiring_core import (
+from cryowire import (
     Amplifier, Attenuator, ChipConfig, CooldownBuilder,
     CooldownMetadata, Filter, Isolator, Stage,
 )
@@ -91,7 +91,7 @@ cooldown.write("output/")
 ### Load & inspect an existing cooldown
 
 ```python
-from cryo_wiring_core import load_cooldown, print_summary, generate_diagram
+from cryowire import load_cooldown, print_summary, generate_diagram
 
 metadata, control, readout_send, readout_return = load_cooldown("path/to/cooldown")
 
@@ -102,7 +102,7 @@ generate_diagram(control, readout_send, readout_return, output="wiring.svg")
 ### Template-based generation
 
 ```python
-from cryo_wiring_core import build_cooldown
+from cryowire import build_cooldown
 
 build_cooldown(
     output_dir="your-cryo/2026/cd001",
@@ -115,7 +115,7 @@ build_cooldown(
 ### Validate YAML files
 
 ```python
-from cryo_wiring_core import validate_wiring, validate_metadata
+from cryowire import validate_wiring, validate_metadata
 import yaml
 
 with open("control.yaml") as f:
@@ -138,7 +138,7 @@ All components share `model` and `serial` fields, and expose `label`, `summary_l
 
 ## Schemas
 
-This package bundles JSON Schema files from [cryo-wiring-spec](https://github.com/cryo-wiring/spec):
+This package bundles JSON Schema files from [cryowire-spec](https://github.com/cryowire/spec):
 
 | Schema                   | Function                | Validates                                            |
 | ------------------------ | ----------------------- | ---------------------------------------------------- |
@@ -149,7 +149,7 @@ This package bundles JSON Schema files from [cryo-wiring-spec](https://github.co
 
 ## Documentation
 
-Full documentation is available at **[cryo-wiring.github.io/core](https://cryo-wiring.github.io/core/)**.
+Full documentation is available at **[cryowire.github.io/core](https://cryowire.github.io/core/)**.
 
 ## Examples
 
@@ -162,7 +162,7 @@ uv run marimo edit examples/getting_started.py
 
 The notebook covers builder usage, summary tables, SVG diagram rendering, and component add/remove/replace operations.
 
-Try it online in the [Playground](https://cryo-wiring.github.io/core/marimo/) — no installation required.
+Try it online in the [Playground](https://cryowire.github.io/core/marimo/) — no installation required.
 
 ## Development
 
