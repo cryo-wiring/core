@@ -1,6 +1,6 @@
 [project]
 name = "cryowire"
-version = "0.1.0"
+dynamic = ["version"]
 description = "JSON Schema validation for cryowire configuration files"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -34,8 +34,14 @@ Repository = "https://github.com/cryowire/cryowire"
 Issues = "https://github.com/cryowire/cryowire/issues"
 
 [build-system]
-requires = ["uv_build>=0.9.11,<0.10.0"]
-build-backend = "uv_build"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/cryowire/_version.py"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]

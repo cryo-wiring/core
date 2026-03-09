@@ -1,0 +1,8 @@
+release: <%= Time.now.strftime('%Y-%m-%d %H:%M') %>
+> [!CAUTION]
+> **Create Merge Commit** is recommended to merge this PR.
+> Before merging, update the version in `pyproject.toml`.
+
+<% pull_requests.each do |pr| -%>
+- #<%= pr.number %> <%= pr.mention %>
+<% end -%>

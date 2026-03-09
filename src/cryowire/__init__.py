@@ -1,5 +1,7 @@
 """cryowire: JSON Schema validation, data models, and loaders for cryowire configuration files."""
 
+from cryowire._version import __version__
+
 from cryowire.config import (
     find_config,
     load_config,
