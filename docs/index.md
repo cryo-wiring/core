@@ -1,4 +1,4 @@
-# Cryo Wiring Core
+# Cryowire Core
 
 Python library for dilution refrigerator wiring configuration — data models, validation, diagram generation, and programmatic building.
 
