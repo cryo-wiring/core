@@ -94,7 +94,6 @@ __all__ = [
     "load_yaml",
     "resolve_templates_dir",
     "templates_dir",
-    "validate_bundle",
     "validate_chip",
     "validate_components",
     "validate_metadata",
