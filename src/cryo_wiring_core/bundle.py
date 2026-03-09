@@ -95,10 +95,9 @@ def export_cooldown(
     metadata, control, readout_send, readout_return = load_cooldown(d, components_path)
 
     chip: ChipConfig | None = None
-    for cp in [d / "chip.yaml", d.parent / "chip.yaml"]:
-        if cp.exists():
-            chip = load_chip(cp)
-            break
+    chip_path = d / "chip.yaml"
+    if chip_path.exists():
+        chip = load_chip(chip_path)
 
     result: dict = {
         "metadata": metadata.model_dump(),

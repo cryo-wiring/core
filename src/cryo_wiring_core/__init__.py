@@ -5,6 +5,11 @@ from cryo_wiring_core.config import (
     load_config,
     resolve_template_path,
 )
+from cryo_wiring_core.layout import (
+    CryoEntry,
+    CryoLayout,
+    YearGroup,
+)
 from cryo_wiring_core.loader import (
     bundled_templates_dir,
     default_components_path,
@@ -102,4 +107,7 @@ __all__ = [
     "export_cooldown",
     "write_cooldown",
     "generate_diagram",
+    "CryoEntry",
+    "CryoLayout",
+    "YearGroup",
 ]

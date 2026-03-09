@@ -7,8 +7,8 @@ Two usage patterns:
     from cryo_wiring_core.builder import build_cooldown
 
     build_cooldown(
-        output_dir="my-cryo/current",
-        fridge="my-cryo",
+        output_dir="my-cryo/2026/cd001",
+        cryo="my-cryo",
         chip_name="sample-chip",
         num_qubits=16,
     )
@@ -27,7 +27,7 @@ Two usage patterns:
     cooldown = (
         CooldownBuilder(
             chip=ChipConfig(name="sample-8q", num_qubits=8),
-            metadata=CooldownMetadata(fridge="my-cryo", cooldown_id="cd001", date="2026-03-06"),
+            metadata=CooldownMetadata(cryo="my-cryo", cooldown_id="cd001", date="2026-03-06"),
             catalog=catalog,
             control={Stage.K50: ["XMA-10dB"], Stage.MXC: ["XMA-20dB"]},
             readout_return={Stage.CP: ["LNF-ISO", "LNF-ISO"], Stage.K50: ["LNF-HEMT"]},
@@ -385,7 +385,7 @@ class CooldownBuilder:
         cooldown = (
             CooldownBuilder(
                 chip=ChipConfig(name="sample-8q", num_qubits=8),
-                metadata=CooldownMetadata(fridge="my-cryo", cooldown_id="cd001", date="2026-03-06"),
+                metadata=CooldownMetadata(cryo="my-cryo", cooldown_id="cd001", date="2026-03-06"),
                 catalog=catalog,
                 control={Stage.K50: ["XMA-10dB"], Stage.MXC: ["XMA-20dB"]},
             )
@@ -793,7 +793,7 @@ def _load_module_template(
 
 def build_cooldown(
     output_dir: str | Path,
-    fridge: str,
+    cryo: str,
     chip_name: str,
     num_qubits: int,
     cooldown_id: str = "cd001",
@@ -809,8 +809,8 @@ def build_cooldown(
     ----------
     output_dir
         Directory to create.
-    fridge
-        Fridge name (e.g. ``"anemone"``).
+    cryo
+        Cryostat name (e.g. ``"anemone"``).
     chip_name
         Chip name for ``chip.yaml``.
     num_qubits
@@ -849,7 +849,7 @@ def build_cooldown(
         content
         .replace("cdNNN", cooldown_id)
         .replace("YYYY-MM-DD", d)
-        .replace("FRIDGE", fridge)
+        .replace("CRYO", cryo)
     )
     if operator:
         content = content.replace('operator: ""', f'operator: "{operator}"')

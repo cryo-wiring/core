@@ -95,7 +95,7 @@ def _():
     cooldown = (
         CooldownBuilder(
             chip=ChipConfig(name="sample-8q", num_qubits=8, qubits_per_readout_line=4),
-            metadata=CooldownMetadata(fridge="your-cryo", cooldown_id="cd001", date="2026-03-06"),
+            metadata=CooldownMetadata(cryo="your-cryo", cooldown_id="cd001", date="2026-03-06"),
             catalog=catalog,
             control={
                 Stage.K50: ["XMA-10dB"],

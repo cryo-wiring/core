@@ -123,7 +123,7 @@ class TestValidateMetadata:
         data = {
             "cooldown_id": "cd001",
             "date": "2026-03-01",
-            "fridge": "BlueFors-LD400",
+            "cryo": "BlueFors-LD400",
             "operator": "Alice",
             "purpose": "Qubit characterization",
             "notes": "Test run",
@@ -134,7 +134,7 @@ class TestValidateMetadata:
         data = {
             "cooldown_id": "cd001",
             "date": "2026-03-01",
-            "fridge": "BlueFors-LD400",
+            "cryo": "BlueFors-LD400",
         }
         validate_metadata(data)
 
@@ -142,7 +142,7 @@ class TestValidateMetadata:
         data = {
             "cooldown_id": "xyz",
             "date": "2026-03-01",
-            "fridge": "BlueFors-LD400",
+            "cryo": "BlueFors-LD400",
         }
         with pytest.raises(ValidationError):
             validate_metadata(data)
@@ -156,7 +156,7 @@ class TestValidateMetadata:
         data = {
             "cooldown_id": "cd001",
             "date": "2026-03-01",
-            "fridge": "BlueFors-LD400",
+            "cryo": "BlueFors-LD400",
             "unknown_field": "value",
         }
         with pytest.raises(ValidationError):
@@ -166,7 +166,7 @@ class TestValidateMetadata:
         data = {
             "cooldown_id": "cd1000",
             "date": "2026-03-01",
-            "fridge": "BlueFors-LD400",
+            "cryo": "BlueFors-LD400",
         }
         validate_metadata(data)
 

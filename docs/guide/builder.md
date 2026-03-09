@@ -55,7 +55,7 @@ builder.for_lines("C03", "C05")
 - `cooldown.control` / `cooldown.readout_send` / `cooldown.readout_return` — `WiringConfig` objects
 - `cooldown.summary(fmt=...)` — generate summary tables
 - `cooldown.diagram(output=...)` — generate wiring diagrams
-- `cooldown.write(output_dir, fridge=...)` — export YAML files
+- `cooldown.write(output_dir, cryo=...)` — export YAML files
 - Supports unpacking: `control, rs, rr = cooldown`
 
 ## Template-based generation
@@ -67,7 +67,7 @@ from cryo_wiring_core import build_cooldown
 
 build_cooldown(
     output_dir="anemone/current",
-    fridge="your-cryo",
+    cryo="your-cryo",
     chip_name="sample-chip",
     num_qubits=16,
 )

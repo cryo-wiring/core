@@ -53,7 +53,7 @@ catalog = {
 cooldown = (
     CooldownBuilder(
         chip=ChipConfig(name="sample-8q", num_qubits=8, qubits_per_readout_line=4),
-        metadata=CooldownMetadata(fridge="your-cryo", cooldown_id="cd001", date="2026-03-06"),
+        metadata=CooldownMetadata(cryo="your-cryo", cooldown_id="cd001", date="2026-03-06"),
         catalog=catalog,
         control={
             Stage.K50: ["XMA-10dB"],
@@ -106,7 +106,7 @@ from cryo_wiring_core import build_cooldown
 
 build_cooldown(
     output_dir="your-cryo/current",
-    fridge="your-cryo",
+    cryo="your-cryo",
     chip_name="sample-chip",
     num_qubits=16,
 )

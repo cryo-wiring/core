@@ -32,7 +32,7 @@ from cryo_wiring_core import (
 SAMPLE_METADATA = {
     "cooldown_id": "cd001",
     "date": "2026-03-01",
-    "fridge": "BlueFors-LD400",
+    "cryo": "BlueFors-LD400",
     "operator": "Alice",
     "purpose": "Qubit characterization",
     "notes": "Initial run",
@@ -161,9 +161,9 @@ class TestMetadataRoundtrip:
         validate_metadata(SAMPLE_METADATA)
         meta = CooldownMetadata.model_validate(SAMPLE_METADATA)
         assert meta.cooldown_id == "cd001"
-        assert meta.fridge == "BlueFors-LD400"
+        assert meta.cryo == "BlueFors-LD400"
 
-    def test_fridge_required_in_both(self):
+    def test_cryo_required_in_both(self):
         data = {"cooldown_id": "cd001", "date": "2026-03-01"}
         with pytest.raises(ValidationError):
             validate_metadata(data)
@@ -178,7 +178,7 @@ class TestMetadataRoundtrip:
             CooldownMetadata.model_validate(data)
 
     def test_minimal_metadata(self):
-        data = {"cooldown_id": "cd001", "date": "2026-03-01", "fridge": "test"}
+        data = {"cooldown_id": "cd001", "date": "2026-03-01", "cryo": "test"}
         validate_metadata(data)
         meta = CooldownMetadata.model_validate(data)
         assert meta.operator == ""

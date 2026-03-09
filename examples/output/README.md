@@ -4,7 +4,7 @@
 |---|---|
 | Cooldown ID | `cd001` |
 | Date | 2026-03-06 |
-| Fridge | your-cryo |
+| Cryo | your-cryo |
 
 ## Wiring Diagram
 

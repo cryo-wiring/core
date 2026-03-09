@@ -352,7 +352,7 @@ def generate_diagram(
         # Draw metadata info box (top-left)
         if metadata is not None:
             _meta_lines = [
-                f"{metadata.fridge}  /  {metadata.cooldown_id}",
+                f"{metadata.cryo}  /  {metadata.cooldown_id}",
                 metadata.date,
             ]
             _meta_text = "\n".join(_meta_lines)

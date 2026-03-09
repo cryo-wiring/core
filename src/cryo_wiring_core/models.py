@@ -159,7 +159,7 @@ class WiringConfig(BaseModel):
 class CooldownMetadata(BaseModel):
     cooldown_id: str = Field(pattern=r"^cd\d{3,}$")
     date: str
-    fridge: str
+    cryo: str
     operator: str = ""
     purpose: str = ""
     notes: str = ""

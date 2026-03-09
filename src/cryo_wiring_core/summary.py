@@ -73,7 +73,7 @@ def _metadata_markdown(metadata: CooldownMetadata | None) -> list[str]:
     parts.append("|---|---|")
     parts.append(f"| Cooldown ID | `{metadata.cooldown_id}` |")
     parts.append(f"| Date | {metadata.date} |")
-    parts.append(f"| Fridge | {metadata.fridge} |")
+    parts.append(f"| Cryo | {metadata.cryo} |")
     if metadata.operator:
         parts.append(f"| Operator | {metadata.operator} |")
     if metadata.purpose:
@@ -91,7 +91,7 @@ def _metadata_html(metadata: CooldownMetadata | None) -> list[str]:
     rows = [
         f"<tr><td><b>Cooldown ID</b></td><td><code>{metadata.cooldown_id}</code></td></tr>",
         f"<tr><td><b>Date</b></td><td>{metadata.date}</td></tr>",
-        f"<tr><td><b>Fridge</b></td><td>{metadata.fridge}</td></tr>",
+        f"<tr><td><b>Cryo</b></td><td>{metadata.cryo}</td></tr>",
     ]
     if metadata.operator:
         rows.append(f"<tr><td><b>Operator</b></td><td>{metadata.operator}</td></tr>")
@@ -221,7 +221,7 @@ def print_summary(
             meta_table.add_column("Value")
             meta_table.add_row("Cooldown ID", metadata.cooldown_id)
             meta_table.add_row("Date", metadata.date)
-            meta_table.add_row("Fridge", metadata.fridge)
+            meta_table.add_row("Cryo", metadata.cryo)
             if metadata.operator:
                 meta_table.add_row("Operator", metadata.operator)
             if metadata.purpose:

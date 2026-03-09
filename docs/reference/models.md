@@ -35,5 +35,5 @@ All components share `model` and `serial` fields, and expose `label`, `summary_l
 ## Configuration models
 
 - `WiringConfig` — contains `lines: list[ControlLine | ReadoutLine]`
-- `CooldownMetadata` — cooldown ID, date, fridge, operator, purpose
+- `CooldownMetadata` — cooldown ID, date, cryo, operator, purpose
 - `ChipConfig` — chip name and qubit count

@@ -7,11 +7,11 @@
   "properties": {
     "metadata": {
       "type": "object",
-      "required": ["cooldown_id", "date", "fridge"],
+      "required": ["cooldown_id", "date", "cryo"],
       "properties": {
         "cooldown_id": { "type": "string", "pattern": "^cd\\d{3,}$" },
         "date": { "type": "string", "format": "date" },
-        "fridge": { "type": "string" },
+        "cryo": { "type": "string" },
         "operator": { "type": "string" },
         "purpose": { "type": "string" },
         "notes": { "type": "string" }
