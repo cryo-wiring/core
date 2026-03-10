@@ -3,7 +3,7 @@
 </a></p>
 
 <h1 align="center">cryowire</h1>
-<p align="center">Python library for dilution refrigerator wiring configuration — data models, validation, diagram generation, and programmatic building.</p>
+<p align="center">Python library and CLI for dilution refrigerator wiring configuration — data models, validation, diagram generation, and programmatic building.</p>
 <p align="center">
   <a href="https://cryowire.github.io/"><img src="https://img.shields.io/badge/Website-cryowire.github.io-38bdf8?style=for-the-badge" alt="Website" /></a>
   <a href="https://cryowire.github.io/cryowire/"><img src="https://img.shields.io/badge/Docs-API_Reference-818cf8?style=for-the-badge" alt="Docs" /></a>
@@ -15,18 +15,55 @@
 pip install cryowire
 ```
 
+## CLI
+
+### Initialize a data project
+
+```bash
+cryowire init ./my-data
+```
+
+Generates `.cryowire.yaml`, `components.yaml`, and `templates/` directory. Edit these to match your lab's components and standard wiring modules.
+
+### Create a new cooldown
+
+```bash
+cryowire new my-cryo --qubits 8 --chip-name "sample-8q"
+```
+
+### Build & validate
+
+```bash
+cryowire build my-cryo/2026/cd001/     # cooldown.yaml, wiring.svg, README.md
+cryowire validate my-cryo/2026/cd001/  # JSON Schema + Pydantic validation
+cryowire diagram my-cryo/2026/cd001/   # wiring diagram only
+cryowire summary my-cryo/2026/cd001/   # summary table
+```
+
+### Commands
+
+| Command                    | Description                                                  |
+| -------------------------- | ------------------------------------------------------------ |
+| `cryowire init [dir]`     | Initialize a new data project                                |
+| `cryowire new <cryo>`     | Create a new cooldown under `<cryo>/<YYYY>/cdNNN/`          |
+| `cryowire build <dir>`    | Build cooldown.yaml, expand modules, generate diagram and README |
+| `cryowire validate <dir>` | Validate YAML against schema and Pydantic models             |
+| `cryowire diagram <dir>`  | Generate a wiring diagram (SVG/PNG)                          |
+| `cryowire summary <dir>`  | Print wiring summary table                                   |
+
 ## Features
 
 | Module      | Description                                                |
 | ----------- | ---------------------------------------------------------- |
 | `models`    | Pydantic v2 models (Stage, Component types, WiringConfig)  |
-| `validate`  | JSON Schema validation against cryowire-spec            |
+| `validate`  | JSON Schema validation against cryowire-spec               |
 | `loader`    | YAML loading, module expansion, component catalog          |
 | `builder`   | Programmatic cooldown generation from Python code          |
 | `summary`   | Wiring summary tables (terminal, Markdown, HTML)           |
 | `diagram`   | Publication-quality wiring diagrams (matplotlib)           |
+| `cli`       | Command-line interface (init, new, build, validate, diagram, summary) |
 
-## Quick Start
+## Python API
 
 ### Build a cooldown
 

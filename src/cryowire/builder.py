@@ -810,7 +810,7 @@ def build_cooldown(
     output_dir
         Directory to create.
     cryo
-        Cryostat name (e.g. ``"anemone"``).
+        Cryostat name (e.g. ``"your-cryo"``).
     chip_name
         Chip name for ``chip.yaml``.
     num_qubits
