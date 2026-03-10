@@ -21,6 +21,7 @@ pip install cryowire
 
 ```bash
 cryowire init ./my-data
+cd my-data
 ```
 
 Generates `.cryowire.yaml`, `components.yaml`, and `templates/` directory. Edit these to match your lab's components and standard wiring modules.
@@ -28,16 +29,16 @@ Generates `.cryowire.yaml`, `components.yaml`, and `templates/` directory. Edit 
 ### Create a new cooldown
 
 ```bash
-cryowire new my-cryo --qubits 8 --chip-name "sample-8q"
+cryowire new your-cryo --qubits 8 --chip-name "sample-8q"
 ```
 
 ### Build & validate
 
 ```bash
-cryowire build my-cryo/2026/cd001/     # cooldown.yaml, wiring.svg, README.md
-cryowire validate my-cryo/2026/cd001/  # JSON Schema + Pydantic validation
-cryowire diagram my-cryo/2026/cd001/   # wiring diagram only
-cryowire summary my-cryo/2026/cd001/   # summary table
+cryowire build your-cryo/2026/cd001/     # cooldown.yaml, wiring.svg, README.md
+cryowire validate your-cryo/2026/cd001/  # JSON Schema + Pydantic validation
+cryowire diagram your-cryo/2026/cd001/   # wiring diagram only
+cryowire summary your-cryo/2026/cd001/   # summary table
 ```
 
 ### Commands
