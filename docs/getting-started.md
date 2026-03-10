@@ -6,6 +6,28 @@
 pip install cryowire
 ```
 
+## CLI Workflow
+
+### Initialize a data project
+
+```bash
+cryowire init ./my-data
+cd my-data
+```
+
+This generates `.cryowire.yaml`, `components.yaml`, and `templates/`. Edit these to match your lab's components and standard wiring modules.
+
+### Create, edit, and build
+
+```bash
+cryowire new my-cryo --qubits 8          # create cooldown from templates
+vi my-cryo/2026/cd001/control.yaml        # edit wiring
+cryowire build my-cryo/2026/cd001/        # generate cooldown.yaml, SVG, README
+cryowire validate my-cryo/2026/cd001/     # validate against schema
+```
+
+## Python API
+
 ## Build a cooldown configuration
 
 `CooldownBuilder` supports full method chaining.

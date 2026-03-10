@@ -14,6 +14,7 @@ dependencies = [
     "pydantic>=2.0",
     "pyyaml>=6.0",
     "rich>=13.0",
+    "typer>=0.9",
 ]
 
 classifiers = [
@@ -27,6 +28,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
     "Typing :: Typed",
 ]
+
+[project.scripts]
+cryowire = "cryowire.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/cryowire/cryowire"
