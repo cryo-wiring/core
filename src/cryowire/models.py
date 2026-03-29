@@ -168,4 +168,3 @@ class CooldownMetadata(BaseModel):
 class ChipConfig(BaseModel):
     name: str
     num_qubits: int = Field(ge=1)
-    qubits_per_readout_line: int = Field(default=4, ge=1)
