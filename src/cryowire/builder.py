@@ -116,42 +116,50 @@ def make_control_lines(num_qubits: int, module_name: str) -> list[dict]:
     ]
 
 
-def make_readout_send_lines(
-    num_qubits: int,
-    module_name: str,
-    qubits_per_line: int = 4,
-) -> list[dict]:
-    """Generate readout-send line definitions."""
-    n_readout = num_qubits // qubits_per_line
+def _default_readout_groups(num_qubits: int, qubits_per_line: int = 4) -> list[list[str]]:
+    """Build default readout groups by uniform division.
+
+    Remainder qubits are placed in the last group.
+    """
     qw = _id_width(num_qubits)
-    rw = _id_width(n_readout)
+    groups: list[list[str]] = []
+    for start in range(0, num_qubits, qubits_per_line):
+        end = min(start + qubits_per_line, num_qubits)
+        groups.append([f"Q{j:0{qw}d}" for j in range(start, end)])
+    return groups
+
+
+def _make_readout_lines(
+    prefix: str,
+    groups: list[list[str]],
+    module_name: str,
+) -> list[dict]:
+    """Generate readout line definitions from multiplexing groups."""
+    rw = _id_width(len(groups))
     return [
         {
-            "line_id": f"RS{i:0{rw}d}",
-            "qubits": [f"Q{i * qubits_per_line + j:0{qw}d}" for j in range(qubits_per_line)],
+            "line_id": f"{prefix}{i:0{rw}d}",
+            "qubits": group,
             "module": module_name,
         }
-        for i in range(n_readout)
+        for i, group in enumerate(groups)
     ]
+
+
+def make_readout_send_lines(
+    groups: list[list[str]],
+    module_name: str,
+) -> list[dict]:
+    """Generate readout-send line definitions from multiplexing groups."""
+    return _make_readout_lines("RS", groups, module_name)
 
 
 def make_readout_return_lines(
-    num_qubits: int,
+    groups: list[list[str]],
     module_name: str,
-    qubits_per_line: int = 4,
 ) -> list[dict]:
-    """Generate readout-return line definitions."""
-    n_readout = num_qubits // qubits_per_line
-    qw = _id_width(num_qubits)
-    rw = _id_width(n_readout)
-    return [
-        {
-            "line_id": f"RR{i:0{rw}d}",
-            "qubits": [f"Q{i * qubits_per_line + j:0{qw}d}" for j in range(qubits_per_line)],
-            "module": module_name,
-        }
-        for i in range(n_readout)
-    ]
+    """Generate readout-return line definitions from multiplexing groups."""
+    return _make_readout_lines("RR", groups, module_name)
 
 
 def make_wiring_yaml(
@@ -402,6 +410,7 @@ class CooldownBuilder:
         metadata: CooldownMetadata | None = None,
         readout_send: dict[Stage, ComponentList] | None = None,
         readout_return: dict[Stage, ComponentList] | None = None,
+        readout_groups: list[list[str]] | None = None,
         *,
         control_name: str = "ctrl",
         readout_send_name: str = "rs",
@@ -409,6 +418,7 @@ class CooldownBuilder:
     ) -> None:
         self._chip = chip
         self._metadata = metadata
+        self._readout_groups = readout_groups
         self._catalog: dict[str, Attenuator | Filter | Isolator | Amplifier] = dict(catalog or {})
         self._overrides: list[tuple] = []
 
@@ -594,6 +604,7 @@ class CooldownBuilder:
             cooldown.diagram("out.svg")
         """
         num_qubits = self._chip.num_qubits
+        groups = self._readout_groups or _default_readout_groups(num_qubits)
 
         ctrl_name, ctrl_stages = self._ctrl
         ctrl_lines = make_control_lines(num_qubits, ctrl_name)
@@ -601,14 +612,14 @@ class CooldownBuilder:
 
         if self._rs is not None:
             rs_name, rs_stages = self._rs
-            rs_lines = make_readout_send_lines(num_qubits, rs_name, self._chip.qubits_per_readout_line)
+            rs_lines = make_readout_send_lines(groups, rs_name)
             readout_send = self._build_wiring_config(rs_name, rs_stages, rs_lines)
         else:
             readout_send = WiringConfig(lines=[])
 
         if self._rr is not None:
             rr_name, rr_stages = self._rr
-            rr_lines = make_readout_return_lines(num_qubits, rr_name, self._chip.qubits_per_readout_line)
+            rr_lines = make_readout_return_lines(groups, rr_name)
             readout_return = self._build_wiring_config(rr_name, rr_stages, rr_lines)
         else:
             readout_return = WiringConfig(lines=[])
@@ -752,9 +763,10 @@ class CooldownBuilder:
         )
 
         # readout_send.yaml
+        groups = self._readout_groups or _default_readout_groups(num_qubits)
         if self._rs is not None:
             rs_name, rs_stages = self._rs
-            rs_lines = make_readout_send_lines(num_qubits, rs_name, self._chip.qubits_per_readout_line)
+            rs_lines = make_readout_send_lines(groups, rs_name)
             (output / "readout_send.yaml").write_text(
                 _dump_yaml(self._module_to_yaml_dict(rs_name, rs_stages, rs_lines))
             )
@@ -762,7 +774,7 @@ class CooldownBuilder:
         # readout_return.yaml
         if self._rr is not None:
             rr_name, rr_stages = self._rr
-            rr_lines = make_readout_return_lines(num_qubits, rr_name, self._chip.qubits_per_readout_line)
+            rr_lines = make_readout_return_lines(groups, rr_name)
             (output / "readout_return.yaml").write_text(
                 _dump_yaml(self._module_to_yaml_dict(rr_name, rr_stages, rr_lines))
             )
@@ -802,6 +814,7 @@ def build_cooldown(
     purpose: str = "",
     components_path: Path | None = None,
     template_path: Path | None = None,
+    readout_groups: list[list[str]] | None = None,
 ) -> Path:
     """Generate a complete cooldown directory from templates.
 
@@ -829,6 +842,9 @@ def build_cooldown(
         Path to a custom templates directory.  When set, module templates
         and metadata template are loaded from this directory instead of
         the bundled defaults.
+    readout_groups
+        Qubit-to-readout-line grouping. Each element is a list of qubit IDs
+        sharing one readout line. Defaults to uniform groups of 4.
 
     Returns
     -------
@@ -873,15 +889,16 @@ def build_cooldown(
     )
 
     # Readout send
+    groups = readout_groups or _default_readout_groups(num_qubits)
     rs_name, rs_def = _load_module_template("readout_send_module.yaml", catalog, template_path)
-    rs_lines = make_readout_send_lines(num_qubits, rs_name)
+    rs_lines = make_readout_send_lines(groups, rs_name)
     (output / "readout_send.yaml").write_text(
         _dump_yaml(make_wiring_yaml(rs_def, rs_name, rs_lines))
     )
 
     # Readout return
     rr_name, rr_def = _load_module_template("readout_return_module.yaml", catalog, template_path)
-    rr_lines = make_readout_return_lines(num_qubits, rr_name)
+    rr_lines = make_readout_return_lines(groups, rr_name)
     (output / "readout_return.yaml").write_text(
         _dump_yaml(make_wiring_yaml(rr_def, rr_name, rr_lines))
     )
