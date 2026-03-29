@@ -88,7 +88,7 @@ catalog = {
 # 2. Build cooldown (reference components by key)
 cooldown = (
     CooldownBuilder(
-        chip=ChipConfig(name="sample-8q", num_qubits=8),
+        chip=ChipConfig(name="sample-8q", num_qubits=8, qubits_per_readout_line=4),
         metadata=CooldownMetadata(cryo="your-cryo", cooldown_id="cd001", date="2026-03-06"),
         catalog=catalog,
         control={

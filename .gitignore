@@ -180,7 +180,4 @@ src/cryowire/_version.py
 .jupyterlite.doit.db
 examples/pypi/
 
-# Nix
-result
-
 # End of https://www.toptal.com/developers/gitignore/api/python
